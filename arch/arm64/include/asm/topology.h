@@ -29,6 +29,7 @@ void init_cpu_topology(void);
 void store_cpu_topology(unsigned int cpuid);
 void remove_cpu_topology(unsigned int cpuid);
 const struct cpumask *cpu_coregroup_mask(int cpu);
+unsigned long arch_get_cpu_efficiency(int cpu);
 
 #ifdef CONFIG_NUMA
 
