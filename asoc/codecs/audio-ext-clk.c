@@ -15,7 +15,7 @@
 #include <linux/of_gpio.h>
 #include <dt-bindings/clock/msm-clocks-8996.h>
 #include <dsp/q6afe-v2.h>
-#include "audio-ext-clk-up.h"
+#include "audio-ext-clk.h"
 
 struct pinctrl_info {
 	struct pinctrl *pinctrl;
@@ -141,7 +141,6 @@ static struct audio_ext_pmi_clk audio_pmi_clk = {
 	.gpio = -EINVAL,
 	.c = {
 		.dbg_name = "audio_ext_pmi_clk",
-		.ops = &clk_ops_dummy,
 		CLK_INIT(audio_pmi_clk.c),
 	},
 };
@@ -150,7 +149,6 @@ static struct audio_ext_pmi_clk audio_pmi_lnbb_clk = {
 	.gpio = -EINVAL,
 	.c = {
 		.dbg_name = "audio_ext_pmi_lnbb_clk",
-		.ops = &clk_ops_dummy,
 		CLK_INIT(audio_pmi_lnbb_clk.c),
 	},
 };
