@@ -5,7 +5,11 @@
 
 #include <linux/module.h>
 #include <sound/wcd-dsp-mgr.h>
+#if IS_ENABLED(CONFIG_COMMON_CLK_QCOM)
 #include "audio-ext-clk-up.h"
+#else
+#include "audio-ext-clk.h"
+#endif
 
 static int __init wcd9xxx_soc_init(void)
 {
