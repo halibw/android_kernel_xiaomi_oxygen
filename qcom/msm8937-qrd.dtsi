@@ -62,6 +62,12 @@
 		"AMIC1", "MIC BIAS External",
 		"AMIC2", "MIC BIAS Internal2",
 		"AMIC3", "MIC BIAS External";
+
+	/delete-property/ asoc-wsa-codec-names;
+	/delete-property/ asoc-wsa-codec-prefixes;
+	/delete-property/ msm-vdd-wsa-switch-supply;
+	/delete-property/ qcom,msm-vdd-wsa-switch-voltage;
+	/delete-property/ qcom,msm-vdd-wsa-switch-current;
 };
 
 
