@@ -1864,7 +1864,7 @@
 		interrupt-names = "hs_phy_irq", "ss_phy_irq", "pwr_event_irq";
 
 		USB3_GDSC-supply = <&gdsc_usb30>;
-		qcom,usb-dbm = <&dbm_1p5>;
+		qcom,reset-ep-after-lpm-resume;
 		qcom,msm-bus,name = "usb3";
 		qcom,msm-bus,num-cases = <3>;
 		qcom,msm-bus,num-paths = <1>;
@@ -2128,12 +2128,6 @@
 			<&clock_gcc GCC_USB3PHY_PHY_BCR>;
 
 		reset-names = "phy_reset", "phy_phy_reset";
-	};
-
-	dbm_1p5: dbm@70f8000 {
-		compatible = "qcom,usb-dbm-1p5";
-		reg = <0x070f8000 0x300>;
-		qcom,reset-ep-after-lpm-resume;
 	};
 
 	qcom,mss@4080000 {
