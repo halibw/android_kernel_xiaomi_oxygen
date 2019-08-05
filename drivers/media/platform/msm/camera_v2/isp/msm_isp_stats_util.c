@@ -250,9 +250,6 @@ static int32_t msm_isp_stats_buf_divert(struct vfe_device *vfe_dev,
 			*comp_stats_type_mask |=
 				1 << stream_info->stats_type;
 		}
-		stats_event->pd_stats_idx = 0xF;
-		if (stream_info->stats_type == MSM_ISP_STATS_BF)
-			stats_event->pd_stats_idx = vfe_dev->pd_buf_idx;
 	}
 
 	return rc;
@@ -606,7 +603,6 @@ static int msm_isp_stats_update_cgc_override(struct vfe_device *vfe_dev,
 			stream_cfg_cmd->num_streams);
 		return -EINVAL;
 	}
-
 	for (i = 0; i < stream_cfg_cmd->num_streams; i++) {
 		idx = STATS_IDX(stream_cfg_cmd->stream_handle[i]);
 

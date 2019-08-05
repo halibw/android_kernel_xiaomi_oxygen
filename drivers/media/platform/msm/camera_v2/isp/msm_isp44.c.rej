@@ -1,0 +1,69 @@
+--- drivers/media/platform/msm/camera_v2/isp/msm_isp44.c
++++ drivers/media/platform/msm/camera_v2/isp/msm_isp44.c
+@@ -397,7 +397,7 @@ static void msm_vfe44_process_error_status(struct vfe_device *vfe_dev)
+ 	}
+ }
+ 
+-static void msm_vfe44_read_irq_status_and_clear(struct vfe_device *vfe_dev,
++static void msm_vfe44_read_irq_status(struct vfe_device *vfe_dev,
+ 	uint32_t *irq_status0, uint32_t *irq_status1)
+ {
+ 	*irq_status0 = msm_camera_io_r(vfe_dev->vfe_base + 0x38);
+@@ -425,13 +425,6 @@ static void msm_vfe44_read_irq_status_and_clear(struct vfe_device *vfe_dev,
+ 
+ }
+ 
+-static void msm_vfe44_read_irq_status(struct vfe_device *vfe_dev,
+-	uint32_t *irq_status0, uint32_t *irq_status1)
+-{
+-	*irq_status0 = msm_camera_io_r(vfe_dev->vfe_base + 0x38);
+-	*irq_status1 = msm_camera_io_r(vfe_dev->vfe_base + 0x3C);
+-}
+-
+ static void msm_vfe44_process_reg_update(struct vfe_device *vfe_dev,
+ 	uint32_t irq_status0, uint32_t irq_status1,
+ 	struct msm_isp_timestamp *ts)
+@@ -521,10 +514,11 @@ static void msm_vfe44_process_epoch_irq(struct vfe_device *vfe_dev,
+ 			pix_stream_count == 0) {
+ 			ISP_DBG("%s: SOF IRQ\n", __func__);
+ 			msm_isp_notify(vfe_dev, ISP_EVENT_SOF, VFE_PIX_0, ts);
+-			if (vfe_dev->axi_data.stream_update[VFE_PIX_0])
++			if (vfe_dev->axi_data.stream_update[VFE_PIX_0]) {
+ 				msm_isp_axi_stream_update(vfe_dev, VFE_PIX_0);
+ 				vfe_dev->hw_info->vfe_ops.core_ops.reg_update(
+ 				   vfe_dev, VFE_PIX_0);
++			}
+ 		}
+ 	}
+ }
+@@ -689,12 +683,6 @@ static void msm_vfe44_axi_clear_wm_irq_mask(struct vfe_device *vfe_dev,
+ 			MSM_ISP_IRQ_DISABLE);
+ }
+ 
+-static void msm_vfe44_axi_clear_irq_mask(struct vfe_device *vfe_dev)
+-{
+-	msm_camera_io_w_mb(0x0, vfe_dev->vfe_base + 0x28);
+-	msm_camera_io_w_mb(0x0, vfe_dev->vfe_base + 0x2C);
+-}
+-
+ static void msm_vfe44_cfg_framedrop(void __iomem *vfe_base,
+ 	struct msm_vfe_axi_stream *stream_info, uint32_t framedrop_pattern,
+ 	uint32_t framedrop_period)
+@@ -1794,8 +1782,6 @@ struct msm_vfe_hardware_info vfe44_hw_info = {
+ 	.vfe_ops = {
+ 		.irq_ops = {
+ 			.read_irq_status = msm_vfe44_read_irq_status,
+-			.read_irq_status_and_clear =
+-				msm_vfe44_read_irq_status_and_clear,
+ 			.process_camif_irq = msm_vfe44_process_input_irq,
+ 			.process_reset_irq = msm_vfe44_process_reset_irq,
+ 			.process_halt_irq = msm_vfe44_process_halt_irq,
+@@ -1815,8 +1801,6 @@ struct msm_vfe_hardware_info vfe44_hw_info = {
+ 			.clear_comp_mask = msm_vfe44_axi_clear_comp_mask,
+ 			.cfg_wm_irq_mask = msm_vfe44_axi_cfg_wm_irq_mask,
+ 			.clear_wm_irq_mask = msm_vfe44_axi_clear_wm_irq_mask,
+-			.clear_irq_mask =
+-				msm_vfe44_axi_clear_irq_mask,
+ 			.cfg_framedrop = msm_vfe44_cfg_framedrop,
+ 			.clear_framedrop = msm_vfe44_clear_framedrop,
+ 			.cfg_wm_reg = msm_vfe44_axi_cfg_wm_reg,
