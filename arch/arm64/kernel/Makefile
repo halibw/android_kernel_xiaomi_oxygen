@@ -45,6 +45,7 @@ arm64-obj-$(CONFIG_PCI)			+= pci.o
 arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
 arm64-obj-$(CONFIG_MSM_APP_API)		+= app_api.o
 arm64-obj-$(CONFIG_MSM_APP_SETTINGS)	+= app_setting.o
+arm64-obj-$(CONFIG_BOOT_INFO)		+= bootinfo.o
 
 ifeq ($(CONFIG_KVM),y)
 arm64-obj-$(CONFIG_HARDEN_BRANCH_PREDICTOR)	+= bpi.o
