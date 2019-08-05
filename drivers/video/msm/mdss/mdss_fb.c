@@ -1782,7 +1782,6 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 					mfd->backlight_enable_flag++;
 					pr_info("%s,set backlight level = %d\n", __func__, temp);
 				}
-			}
 				pdata->set_backlight(pdata, temp);
 				mfd->bl_level = bkl_lvl;
 				mfd->bl_level_scaled = temp;
