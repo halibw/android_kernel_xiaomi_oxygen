@@ -116,6 +116,7 @@ struct ft5x46_data {
 	u8 config_info[FT5X46_CONFIG_INFO_SIZE];
 	bool wakeup_mode;
 	bool cover_mode;
+	bool keypad_mode_enable;
 
 	struct pinctrl *ts_pinctrl;
 	struct pinctrl_state *gpio_state_active;

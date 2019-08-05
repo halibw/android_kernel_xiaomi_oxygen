@@ -1814,6 +1814,35 @@ static ssize_t ft5x46_panel_vendor_show(struct device *dev,
 	return count;
 }
 
+static ssize_t ft5x46_switch_keypad_mode_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	int error;
+	unsigned long val;
+	struct ft5x46_data *ft5x46 = dev_get_drvdata(dev);
+
+	error = sstrtoul(buf, 0, &val);
+    
+	if (val) {
+		// Disable keypad
+		clear_bit(KEY_BACK, ft5x46->input->keybit);
+		clear_bit(KEY_HOME, ft5x46->input->keybit);
+		clear_bit(KEY_MENU, ft5x46->input->keybit);
+	} else {
+		// Enable keypad
+		set_bit(KEY_BACK, ft5x46->input->keybit);
+		set_bit(KEY_HOME, ft5x46->input->keybit);
+		set_bit(KEY_MENU, ft5x46->input->keybit);
+	}
+
+	return error ? : count;
+}
+
+static ssize_t ft5x46_switch_keypad_mode_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct ft5x46_data *ft5x46 = dev_get_drvdata(dev);
+	return sprintf(buf, "%d\n", ft5x46->keypad_mode_enable);
+}
+
 /* sysfs */
 static DEVICE_ATTR(tpfwver, 0644, ft5x46_tpfwver_show, NULL);
 static DEVICE_ATTR(object, 0644, ft5x46_object_show, ft5x46_object_store);
@@ -1826,6 +1855,7 @@ static DEVICE_ATTR(config_info, 0644, ft5x46_config_info_show, NULL);
 static DEVICE_ATTR(wakeup_mode, 0644, ft5x46_wakeup_mode_show, ft5x46_wakeup_mode_store);
 static DEVICE_ATTR(panel_color, 0444, ft5x46_panel_color_show, NULL);
 static DEVICE_ATTR(panel_vendor, 0444, ft5x46_panel_vendor_show, NULL);
+static DEVICE_ATTR(keypad_mode, 0644, ft5x46_switch_keypad_mode_show, ft5x46_switch_keypad_mode_store);
 
 static struct attribute *ft5x46_attrs[] = {
 	&dev_attr_tpfwver.attr,
@@ -1839,6 +1869,7 @@ static struct attribute *ft5x46_attrs[] = {
 	&dev_attr_wakeup_mode.attr,
 	&dev_attr_panel_color.attr,
 	&dev_attr_panel_vendor.attr,
+	&dev_attr_keypad_mode.attr,
 	NULL
 };
 
@@ -2828,6 +2859,7 @@ struct ft5x46_data *ft5x46_probe(struct device *dev,
 	set_bit(EV_ABS, ft5x46->input->evbit);
 	set_bit(BTN_TOUCH, ft5x46->input->keybit);
 
+	ft5x46->keypad_mode_enable = true;
 	set_bit(KEY_HOME, ft5x46->input->keybit);
 	set_bit(KEY_MENU, ft5x46->input->keybit);
 	set_bit(KEY_BACK, ft5x46->input->keybit);
