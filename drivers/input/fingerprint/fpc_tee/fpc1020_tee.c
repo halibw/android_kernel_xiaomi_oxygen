@@ -55,6 +55,10 @@
 
 #define NUM_PARAMS_REG_ENABLE_SET 2
 
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+static struct kernfs_node *soc_symlink = NULL;
+#endif
+
 static const char * const pctl_names[] = {
 	"fpc1020_reset_reset",
 	"fpc1020_reset_active",
@@ -601,6 +605,12 @@ static int fpc1020_probe(struct platform_device *pdev)
 	struct fpc1020_data *fpc1020 = devm_kzalloc(dev, sizeof(*fpc1020),
 			GFP_KERNEL);
 
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+	struct device *platform_dev;
+	struct kobject *soc_kobj;
+	struct kernfs_node *devices_node, *soc_node;
+#endif
+
 	if (!fpc1020) {
 		dev_err(dev,
 			"failed to allocate memory for struct fpc1020_data\n");
@@ -662,6 +672,30 @@ static int fpc1020_probe(struct platform_device *pdev)
 		(void)device_prepare(fpc1020, true);
 	}
 
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+	if(!dev->parent || !dev->parent->parent) {
+		dev_warn(dev, "Parent platform device not found");
+		goto exit;
+	}
+
+	platform_dev = dev->parent->parent;
+	if(strcmp(kobject_name(&platform_dev->kobj), "platform")) {
+		dev_warn(dev, "Parent platform device name not matched: %s", kobject_name(&platform_dev->kobj));
+		goto exit;
+	}
+
+	devices_node = platform_dev->kobj.sd->parent;
+	soc_kobj = &dev->parent->kobj;
+	soc_node = soc_kobj->sd;
+	kernfs_get(soc_node);
+
+	soc_symlink = kernfs_create_link(devices_node, kobject_name(soc_kobj), soc_node);
+	kernfs_put(soc_node);
+	if(IS_ERR(soc_symlink)) {
+		dev_warn(dev, "Unable to create soc symlink");
+	}
+#endif
+
 	dev_info(dev, "%s: ok\n", __func__);
 	fpc1020->fb_black = false;
 	fpc1020->wait_finger_down = false;
@@ -678,6 +712,13 @@ static int fpc1020_remove(struct platform_device *pdev)
 	struct fpc1020_data *fpc1020 = platform_get_drvdata(pdev);
 
 	fb_unregister_client(&fpc1020->fb_notifier);
+
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+	if(!IS_ERR(soc_symlink)) {
+		kernfs_remove_by_name(soc_symlink->parent, soc_symlink->name);
+	}
+#endif
+
 	sysfs_remove_group(&pdev->dev.kobj, &attribute_group);
 	mutex_destroy(&fpc1020->lock);
 	wakeup_source_trash(&fpc1020->ttw_wl);
