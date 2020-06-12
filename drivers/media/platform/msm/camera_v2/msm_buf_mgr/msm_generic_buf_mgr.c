@@ -1,4 +1,5 @@
 /* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -297,12 +298,11 @@ static void msm_buf_mngr_sd_shutdown(struct msm_buf_mngr_device *dev,
 	if (!list_empty(&dev->buf_qhead)) {
 		list_for_each_entry_safe(bufs,
 			save, &dev->buf_qhead, entry) {
+			pr_info("%s: Delete invalid bufs =%pK, session_id=%u, bufs->ses_id=%d, str_id=%d, idx=%d\n",
+				__func__, (void *)bufs, session->session,
+				bufs->session_id, bufs->stream_id,
+				bufs->index);
 			if (session->session == bufs->session_id) {
-				pr_info("%s: Delete invalid bufs =%pK, session_id=%u, bufs->ses_id=%d, str_id=%d, idx=%d\n",
-					__func__, (void *)bufs,
-					session->session,
-					bufs->session_id, bufs->stream_id,
-					bufs->index);
 				list_del_init(&bufs->entry);
 				kfree(bufs);
 			}
@@ -549,6 +549,8 @@ static long msm_buf_mngr_subdev_ioctl(struct v4l2_subdev *sd,
 			if (!k_ioctl.ioctl_ptr)
 				return -EINVAL;
 			if (!is_compat_task()) {
+			
+                                 
 				MSM_CAM_GET_IOCTL_ARG_PTR(&tmp,
 					&k_ioctl.ioctl_ptr, sizeof(tmp));
 				if (copy_from_user(&buf_info,
@@ -557,6 +559,7 @@ static long msm_buf_mngr_subdev_ioctl(struct v4l2_subdev *sd,
 					return -EFAULT;
 				}
 				k_ioctl.ioctl_ptr = (uintptr_t)&buf_info;
+
 			}
 
 			argp = &k_ioctl;
