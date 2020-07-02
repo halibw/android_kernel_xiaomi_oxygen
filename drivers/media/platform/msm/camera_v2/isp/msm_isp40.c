@@ -169,6 +169,7 @@ static int32_t msm_vfe40_init_qos_parms(struct vfe_device *vfe_dev,
 			qos_regs, qos_entries);
 		if (rc < 0) {
 			pr_err("%s: NO QOS BUS BDG info\n", __func__);
+
 		} else {
 			if (qos_parms->settings) {
 				rc = of_property_read_u32_array(of_node,
@@ -223,6 +224,7 @@ static int32_t msm_vfe40_init_qos_parms(struct vfe_device *vfe_dev,
 							vfebase + ds_regs[i]);
 				}
 			}
+
 		}
 		kfree(ds_settings);
 		kfree(ds_regs);
@@ -557,7 +559,7 @@ static void msm_vfe40_process_error_status(struct vfe_device *vfe_dev)
 		msm_isp_update_last_overflow_ab_ib(vfe_dev);
 }
 
-static void msm_vfe40_read_irq_status_and_clear(struct vfe_device *vfe_dev,
+static void msm_vfe40_read_irq_status(struct vfe_device *vfe_dev,
 	uint32_t *irq_status0, uint32_t *irq_status1)
 {
 	*irq_status0 = msm_camera_io_r(vfe_dev->vfe_base + 0x38);
@@ -593,13 +595,6 @@ static void msm_vfe40_read_irq_status_and_clear(struct vfe_device *vfe_dev,
 		vfe_dev->error_info.violation_status |=
 		msm_camera_io_r(vfe_dev->vfe_base + 0x48);
 
-}
-
-static void msm_vfe40_read_irq_status(struct vfe_device *vfe_dev,
-	uint32_t *irq_status0, uint32_t *irq_status1)
-{
-	*irq_status0 = msm_camera_io_r(vfe_dev->vfe_base + 0x38);
-	*irq_status1 = msm_camera_io_r(vfe_dev->vfe_base + 0x3C);
 }
 
 static void msm_vfe40_process_reg_update(struct vfe_device *vfe_dev,
@@ -854,12 +849,6 @@ static void msm_vfe40_axi_clear_wm_irq_mask(struct vfe_device *vfe_dev,
 				MSM_ISP_IRQ_DISABLE);
 }
 
-static void msm_vfe40_axi_clear_irq_mask(struct vfe_device *vfe_dev)
-{
-	msm_camera_io_w_mb(0x0, vfe_dev->vfe_base + 0x28);
-	msm_camera_io_w_mb(0x0, vfe_dev->vfe_base + 0x2C);
-}
-
 static void msm_vfe40_cfg_framedrop(void __iomem *vfe_base,
 	struct msm_vfe_axi_stream *stream_info, uint32_t framedrop_pattern,
 	uint32_t framedrop_period)
@@ -1041,18 +1030,15 @@ static int msm_vfe40_start_fetch_engine(struct vfe_device *vfe_dev,
 				fe_cfg->stream_id);
 		vfe_dev->fetch_engine_info.bufq_handle = bufq_handle;
 
-		mutex_lock(&vfe_dev->buf_mgr->lock);
 		rc = vfe_dev->buf_mgr->ops->get_buf_by_index(
 			vfe_dev->buf_mgr, bufq_handle, fe_cfg->buf_idx, &buf);
 		if (rc < 0 || !buf) {
 			pr_err("%s: No fetch buffer rc= %d\n",
 				__func__, rc);
-			mutex_unlock(&vfe_dev->buf_mgr->lock);
 			return -EINVAL;
 		}
 		mapped_info = buf->mapped_info[0];
 		buf->state = MSM_ISP_BUFFER_STATE_DISPATCHED;
-		mutex_unlock(&vfe_dev->buf_mgr->lock);
 	} else {
 		rc = vfe_dev->buf_mgr->ops->map_buf(vfe_dev->buf_mgr,
 			&mapped_info, fe_cfg->fd);
@@ -1104,15 +1090,14 @@ static int msm_vfe40_start_fetch_engine_multi_pass(struct vfe_device *vfe_dev,
 		mutex_lock(&vfe_dev->buf_mgr->lock);
 		rc = vfe_dev->buf_mgr->ops->get_buf_by_index(
 			vfe_dev->buf_mgr, bufq_handle, fe_cfg->buf_idx, &buf);
+		mutex_unlock(&vfe_dev->buf_mgr->lock);
 		if (rc < 0 || !buf) {
 			pr_err("%s: No fetch buffer rc= %d buf= %pK\n",
 				__func__, rc, buf);
-			mutex_unlock(&vfe_dev->buf_mgr->lock);
 			return -EINVAL;
 		}
 		mapped_info = buf->mapped_info[0];
 		buf->state = MSM_ISP_BUFFER_STATE_DISPATCHED;
-		mutex_unlock(&vfe_dev->buf_mgr->lock);
 	} else {
 		rc = vfe_dev->buf_mgr->ops->map_buf(vfe_dev->buf_mgr,
 			&mapped_info, fe_cfg->fd);
@@ -1504,7 +1489,6 @@ static void msm_vfe40_update_camif_state(struct vfe_device *vfe_dev,
 		msm_camera_io_w_mb((update_state == DISABLE_CAMIF ? 0x0 : 0x6),
 				vfe_dev->vfe_base + 0x2F4);
 		vfe_dev->axi_data.src_info[VFE_PIX_0].active = 0;
-		vfe_dev->axi_data.src_info[VFE_PIX_0].flag = 0;
 		/* testgen OFF*/
 		if (vfe_dev->axi_data.src_info[VFE_PIX_0].input_mux == TESTGEN)
 			msm_camera_io_w(1 << 1, vfe_dev->vfe_base + 0x93C);
@@ -1717,7 +1701,6 @@ static int msm_vfe40_axi_halt(struct vfe_device *vfe_dev,
 {
 	int rc = 0;
 	enum msm_vfe_input_src i;
-	unsigned long flags;
 
 	/* Keep only halt and restart mask */
 	msm_vfe40_set_halt_restart_mask(vfe_dev);
@@ -1787,17 +1770,8 @@ static int msm_vfe40_axi_restart(struct vfe_device *vfe_dev,
 	memset(&vfe_dev->error_info, 0, sizeof(vfe_dev->error_info));
 	atomic_set(&vfe_dev->error_info.overflow_state, NO_OVERFLOW);
 
-	if (enable_camif &&
-		vfe_dev->axi_data.src_info[VFE_PIX_0].input_mux
-		!= EXTERNAL_READ){
 		vfe_dev->hw_info->vfe_ops.core_ops.
 		update_camif_state(vfe_dev, ENABLE_CAMIF);
-	}
-	if (vfe_dev->fetch_engine_info.is_busy == 1) {
-		vfe_dev->fetch_engine_info.is_busy = 0;
-		msm_camera_io_w_mb(0x1, vfe_dev->vfe_base + 0x378);
-		msm_camera_io_w_mb(0x10000, vfe_dev->vfe_base + 0x4C);
-		msm_camera_io_w_mb(0x20000, vfe_dev->vfe_base + 0x4C);
 	}
 	return 0;
 }
