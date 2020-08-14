@@ -760,7 +760,7 @@ else
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS   += -O3 -finline-hint-functions
 else
-KBUILD_CFLAGS   += -O2
+KBUILD_CFLAGS   += -O3
 endif
 endif
 
