@@ -33,28 +33,42 @@
 		compatible = "qcom,kgsl-busmon";
 	};
 
+	gpu_bw_tbl: gpu-bw-tbl {
+		compatible = "operating-points-v2";
+		opp-0    { opp-hz = /bits/ 64 < 0 >;     }; /* OFF */
+
+		opp-201  { opp-hz = /bits/ 64 < 769 >;   }; /*  1. 201  MHz */
+
+		opp-422  { opp-hz = /bits/ 64 < 1611 >;  }; /*  2. 422  MHz */
+
+		opp-557  { opp-hz = /bits/ 64 < 2124 >;  }; /*  3. 557  MHz */
+
+		opp-768  { opp-hz = /bits/ 64 < 2929 >;  }; /*  4. 768  MHz */
+
+		opp-1075 { opp-hz = /bits/ 64 < 4101 >;  }; /*  5. 1075 MHz */
+
+		opp-1113 { opp-hz = /bits/ 64 < 4248 >;  }; /*  6. 1113 MHz */
+
+		opp-1401 { opp-hz = /bits/ 64 < 5346 >;  }; /*  7. 1401 MHz */
+
+		opp-1497 { opp-hz = /bits/ 64 < 5712 >;  }; /*  8. 1497 MHz */
+
+		opp-1613 { opp-hz = /bits/ 64 < 6152 >;  }; /*  9. 1613 MHz */
+
+		opp-1843 { opp-hz = /bits/ 64 < 7031 >;  }; /* 10. 1843 MHz */
+	};
+
 	gpubw: qcom,gpubw {
 		compatible = "qcom,devbw";
 		governor = "bw_vbif";
 		qcom,src-dst-ports = <26 512>;
+		operating-points-v2 = <&gpu_bw_tbl>;
 		/*
 		 * active-only flag is used while registering the bus
 		 * governor.It helps release the bus vote when the CPU
 		 * subsystem is inactiv3
 		 */
 		qcom,active-only;
-		qcom,bw-tbl =
-			< 0    >, /*  off */
-			< 1611 >, /* 1. DDR:211.20 MHz BIMC: 105.60 MHz */
-			< 2124 >, /* 2. DDR:278.40 MHz BIMC: 139.20 MHz */
-			< 2929 >, /* 3. DDR:384.00 MHz BIMC: 192.00 MHz */
-			< 3222 >, /* 4. DDR:422.40 MHz BIMC: 211.20 MHz */
-			< 4248 >, /* 5. DDR:556.80 MHz BIMC: 278.40 MHz */
-			< 5126 >, /* 6. DDR:672.00 MHz BIMC: 336.00 MHz */
-			< 5859 >, /* 7. DDR:768.00 MHz BIMC: 384.00 MHz */
-			< 6152 >, /* 8. DDR:806.40 MHz BIMC: 403.20 MHz */
-			< 6445 >, /* 9. DDR:844.80 MHz BIMC: 422.40 MHz */
-			< 7104 >; /*10. DDR:931.20 MHz BIMC: 465.60 MHz */
 	};
 
 	msm_gpu: qcom,kgsl-3d0@1c00000 {
@@ -259,8 +273,6 @@
 		compatible = "qcom,kgsl-smmu-v2";
 
 		reg = <0x1c40000 0x10000>;
-		qcom,protect = <0x40000 0x10000>;
-		qcom,micro-mmu-control = <0x6000>;
 
 		clocks = <&clock_gcc_gfx clk_gcc_oxili_ahb_clk>,
 			 <&clock_gcc_gfx clk_gcc_bimc_gfx_clk>;
@@ -273,6 +285,7 @@
 			compatible = "qcom,smmu-kgsl-cb";
 			label = "gfx3d_user";
 			iommus = <&kgsl_smmu 0>;
+			qcom,iommu-dma = "disabled";
 			qcom,gpu-offset = <0x48000>;
 		};
 		gfx3d_secure: gfx3d_secure {
