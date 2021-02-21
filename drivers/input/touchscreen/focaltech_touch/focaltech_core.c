@@ -1704,12 +1704,16 @@ static int fts_ts_check_dt(struct device_node *np)
 
 	for (i = 0; i < count; i++) {
 		node = of_parse_phandle(np, "panel", i);
+#ifdef CONFIG_DRM
 		panel = of_drm_find_panel(node);
+#endif
 		of_node_put(node);
+#ifdef CONFIG_DRM
 		if (!IS_ERR(panel)) {
 			active_panel = panel;
 			return 0;
 		}
+#endif
 	}
 
 	return -ENODEV;
