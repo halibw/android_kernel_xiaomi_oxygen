@@ -1280,6 +1280,10 @@
 			qcom,diag_cntl {
 				qcom,smd-channels = "DIAG_CNTL";
 			};
+
+			qcom,apr_tal_rpmsg {
+				qcom,smd-channels = "apr_audio_svc";
+			};
 		};
 
 		wcnss {
