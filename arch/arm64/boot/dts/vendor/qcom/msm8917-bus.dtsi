@@ -84,7 +84,7 @@
 		mas_oxili: mas-oxili {
 			cell-id = <MSM_BUS_MASTER_GRAPHICS_3D>;
 			label = "mas-oxili";
-			qcom,buswidth = <8>;
+			qcom,buswidth = <16>;
 			qcom,agg-ports = <1>;
 			qcom,ap-owned;
 			qcom,qport = <2>;
@@ -728,7 +728,7 @@
 		slv_gpu_cfg:slv-gpu-cfg {
 			cell-id = <MSM_BUS_SLAVE_GRAPHICS_3D_CFG>;
 			label = "slv-gpu-cfg";
-			qcom,buswidth = <8>;
+			qcom,buswidth = <16>;
 			qcom,agg-ports = <1>;
 			qcom,ap-owned;
 			qcom,bus-dev = <&fab_pcnoc>;
