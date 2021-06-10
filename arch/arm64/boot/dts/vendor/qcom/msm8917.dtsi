@@ -36,14 +36,14 @@
 			compatible = "android,firmware";
 			vbmeta {
 				compatible = "android,vbmeta";
-			parts = "vbmeta,boot,system,vendor,dtbo,recovery";
+				parts = "vbmeta,boot,system,vendor,dtbo,recovery";
 			};
 
 			fstab {
 				compatible = "android,fstab";
 				vendor {
 					compatible = "android,vendor";
-		dev = "/dev/block/platform/soc/7824900.sdhci/by-name/vendor";
+					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1,discard";
 					fsmgr_flags = "wait,avb";
@@ -555,7 +555,7 @@
 	};
 
 	gcc: qcom,gcc@1800000 {
-		compatible = "qcom,gcc-msm8917", "syscon";
+		compatible = "qcom,gcc-qm215", "syscon";
 		reg = <0x1800000 0x80000>,
 			 <0x00a6018 0x00004>;
 		reg-names = "cc_base", "gpu-bin";
