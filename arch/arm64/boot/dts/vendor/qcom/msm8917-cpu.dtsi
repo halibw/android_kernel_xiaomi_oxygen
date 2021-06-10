@@ -8,11 +8,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 		cpu-map {
-
 			cluster0 {
-			};
-
-			cluster1 {
 				core0 {
 					cpu = <&CPU0>;
 				};
