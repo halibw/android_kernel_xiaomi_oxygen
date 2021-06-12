@@ -39,8 +39,8 @@
 		qcom,cam-vreg-op-mode = <200000 0 80000 100000>;
 		pinctrl-names = "cam_default", "cam_suspend";
 		pinctrl-0 = <&cam_sensor_mclk0_default
-				&cam_sensor_rear_default>;
-		pinctrl-1 = <&cam_sensor_mclk0_sleep &cam_sensor_rear_sleep>;
+				&cam_sensor_rear_reset>;
+		pinctrl-1 = <&cam_sensor_mclk0_sleep &cam_sensor_rear_reset_sleep>;
 		gpios = <&tlmm 26 0>,
 			<&tlmm 36 0>,
 			<&tlmm 35 0>;
@@ -116,9 +116,9 @@
 		qcom,cam-vreg-op-mode = <200000 0 80000 100000>;
 		pinctrl-names = "cam_default", "cam_suspend";
 		pinctrl-0 = <&cam_sensor_mclk0_default
-				&cam_sensor_rear_default>;
+				&cam_sensor_rear_reset>;
 		pinctrl-1 = <&cam_sensor_mclk0_sleep
-				&cam_sensor_rear_sleep>;
+				&cam_sensor_rear_reset_sleep>;
 		gpios = <&tlmm 26 0>,
 			<&tlmm 36 0>,
 			<&tlmm 35 0>;
