@@ -194,3 +194,12 @@
 &thermal_zones {
 	/delete-node/ pa-therm1-adc;
 };
+
+&pm8937_adc_tm {
+	io-channels = <&pm8937_vadc VADC_LR_MUX7_HW_ID>,
+					<&pm8937_vadc VADC_LR_MUX3_XO_THERM>,
+					<&pm8937_vadc VADC_LR_MUX3_BUF_XO_THERM>,
+					<&pm8937_vadc VADC_P_MUX4_1_1>;
+	/delete-node/ pa_therm1;
+};
+
