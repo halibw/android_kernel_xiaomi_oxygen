@@ -222,8 +222,8 @@
 		compatible = "qcom,ipa";
 		reg = <0x07900000 0x4effc>, <0x07904000 0x26934>;
 		reg-names = "ipa-base", "bam-base";
-		interrupts = <0 228 0>,
-				<0 230 0>;
+		interrupts = <0 228 IRQ_TYPE_LEVEL_HIGH>,
+				<0 230 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "ipa-irq", "bam-irq";
 		qcom,ipa-hw-ver = <6>; /* IPA core version = IPAv2.6L */
 		qcom,ipa-hw-mode = <0>; /* IPA hw type = Normal */
