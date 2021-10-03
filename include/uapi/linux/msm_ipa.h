@@ -554,12 +554,6 @@ enum ipa_hw_type {
 	IPA_HW_v3_5 = 12,
 	IPA_HW_v3_5_1 = 13,
 	IPA_HW_v4_0 = 14,
-<<<<<<< HEAD
-};
-#define IPA_HW_MAX (IPA_HW_v4_0 + 1)
-
-#define IPA_HW_v4_0 IPA_HW_v4_0
-=======
 	IPA_HW_v4_1 = 15,
 	IPA_HW_v4_2 = 16,
 	IPA_HW_v4_5 = 17,
@@ -570,7 +564,6 @@ enum ipa_hw_type {
 #define IPA_HW_v4_1 IPA_HW_v4_1
 #define IPA_HW_v4_2 IPA_HW_v4_2
 #define IPA_HW_v4_5 IPA_HW_v4_5
->>>>>>> 08d54462661e4fdc417ecd945e5fc19bcad6df0b
 
 /**
  * struct ipa_rule_attrib - attributes of a routing/filtering
