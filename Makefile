@@ -772,6 +772,17 @@ DISABLE_LTO	+= $(DISABLE_CFI)
 export DISABLE_CFI
 endif
 
+ifdef CONFIG_LLVM_POLLY
+KBUILD_CFLAGS	+= -mllvm -polly \
+		   -mllvm -polly-run-dce \
+		   -mllvm -polly-run-inliner \
+		   -mllvm -polly-ast-use-context \
+		   -mllvm -polly-detect-keep-going \
+		   -mllvm -polly-vectorizer=stripmine \
+		   -mllvm -polly-invariant-load-hoisting \
+		   -mllvm -polly-isl-arg=--no-schedule-serialize-sccs
+endif
+
 ifdef CONFIG_SHADOW_CALL_STACK
 scs-flags	:= -fsanitize=shadow-call-stack
 KBUILD_CFLAGS	+= $(scs-flags)
