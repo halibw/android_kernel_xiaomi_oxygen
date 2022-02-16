@@ -3,6 +3,7 @@
 #include "pinctrl.dtsi"
 #include "msm8953-oxygen-pinctrl.dtsi"
 
+#include "android.dtsi"
 #include "battery.dtsi"
 #include "display.dtsi"
 #include "misc.dtsi"
