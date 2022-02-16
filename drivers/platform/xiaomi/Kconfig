@@ -1,0 +1,2 @@
+config MACH_XIAOMI_OXYGEN
+	bool "Xiaomi MI MAX 2"
