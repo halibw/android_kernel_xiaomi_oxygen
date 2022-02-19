@@ -49,6 +49,7 @@
 /* msm8953-audio.dtsi */
 &int_codec {
     /delete-property/ qcom,cdc-us-euro-gpios;
+    /delete-property/ qcom,cdc-us-eu-gpios;
 	qcom,msm-mbhc-hphl-swh = <1>;
 	qcom,msm-mbhc-gnd-swh = <1>;
 	qcom,msm-hs-micbias-type = "external";
