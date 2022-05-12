@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2007 Google Incorporated
  * Copyright (c) 2008-2021, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
  */
 
 #define pr_fmt(fmt)	"%s: " fmt, __func__
@@ -513,6 +514,21 @@ static ssize_t show_blank_event_show(struct device *dev,
 	return ret;
 }
 
+static ssize_t mdss_fb_set_dispparam(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t size)
+{
+	int param, ret;
+	struct fb_info *fbi = dev_get_drvdata(dev);
+	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)fbi->par;
+	struct mdss_panel_data *pdata = dev_get_platdata(&mfd->pdev->dev);
+
+	sscanf(buf, "0x%x", &param);
+	pdata->panel_info.panel_paramstatus = param;
+	ret = mdss_fb_send_panel_event(mfd, MDSS_EVENT_DISPPARAM, NULL);
+
+	return size;
+}
+
 static void __mdss_fb_idle_notify_work(struct work_struct *work)
 {
 	struct delayed_work *dw = to_delayed_work(work);
@@ -929,9 +945,11 @@ static DEVICE_ATTR_RW(msm_fb_dfps_mode);
 static DEVICE_ATTR_RO(measured_fps);
 static DEVICE_ATTR_RW(msm_fb_persist_mode);
 static DEVICE_ATTR_RO(idle_power_collapse);
+static DEVICE_ATTR(msm_fb_dispparam, 0644, NULL, mdss_fb_set_dispparam);
 
 static struct attribute *mdss_fb_attrs[] = {
 	&dev_attr_msm_fb_type.attr,
+	&dev_attr_msm_fb_dispparam.attr,
 	&dev_attr_msm_fb_split.attr,
 	&dev_attr_show_blank_event.attr,
 	&dev_attr_idle_time.attr,
@@ -1756,6 +1774,16 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 			pdata->set_backlight(pdata, temp);
 			mfd->bl_level = bkl_lvl;
 			mfd->bl_level_scaled = temp;
+
+			if (0 == temp) {
+				mfd->backlight_enable_flag = 0;
+				pr_info("%s,turn backlight off level = %d\n", __func__, temp);
+			} else {
+				if (0 == mfd->backlight_enable_flag) {
+					mfd->backlight_enable_flag++;
+					pr_info("%s,set backlight level = %d\n", __func__, temp);
+				}
+			}
 		}
 		if (ad_bl_notify_needed)
 			mdss_fb_bl_update_notify(mfd,
@@ -1788,6 +1816,12 @@ void mdss_fb_update_backlight(struct msm_fb_data_type *mfd)
 					NOTIFY_TYPE_BL_AD_ATTEN_UPDATE);
 			mdss_fb_bl_update_notify(mfd, NOTIFY_TYPE_BL_UPDATE);
 			pdata->set_backlight(pdata, temp);
+
+			if (0 == mfd->backlight_enable_flag) {
+				pr_info("%s,set backlight level = %d\n", __func__, temp);
+				mfd->backlight_enable_flag++;
+			}
+
 			mfd->bl_level_scaled = mfd->unset_bl_level;
 			mfd->allow_bl_update = true;
 		}

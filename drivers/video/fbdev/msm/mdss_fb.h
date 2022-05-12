@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
-/* Copyright (c) 2008-2018, 2020-2021, The Linux Foundation. All rights reserved. */
+/* Copyright (c) 2008-2018, 2020-2021, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
+*/
 
 #ifndef MDSS_FB_H
 #define MDSS_FB_H
@@ -308,6 +310,7 @@ struct msm_fb_data_type {
 	u64 bl_extn_level;
 	u32 bl_scale;
 	u32 unset_bl_level;
+	u32 backlight_enable_flag;
 	bool allow_bl_update;
 	u32 bl_level_scaled;
 	u32 bl_level_usr;
