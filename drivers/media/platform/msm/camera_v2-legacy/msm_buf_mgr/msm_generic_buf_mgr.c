@@ -1,4 +1,5 @@
 /* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -558,7 +559,7 @@ static long msm_buf_mngr_subdev_ioctl(struct v4l2_subdev *sd,
 				}
 				k_ioctl.ioctl_ptr = (uintptr_t)&buf_info;
 			}
-
+			k_ioctl.ioctl_ptr = (uintptr_t)&buf_info;
 			argp = &k_ioctl;
 			rc = msm_cam_buf_mgr_ops(cmd, argp);
 			}
