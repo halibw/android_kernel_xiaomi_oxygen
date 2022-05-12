@@ -1,4 +1,5 @@
 /* Copyright (c) 2012-2015, 2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -27,6 +28,9 @@
 #include <linux/delay.h>
 #include <linux/regulator/consumer.h>
 #include <linux/delay.h>
+#if defined(CONFIG_MACH_XIAOMI_OXYGEN) && defined(CONFIG_BOOT_INFO)
+#include <asm/bootinfo.h>
+#endif
 
 #define WLED_MOD_EN_REG(base, n)	(base + 0x60 + n*0x10)
 #define WLED_IDAC_DLY_REG(base, n)	(WLED_MOD_EN_REG(base, n) + 0x01)
@@ -3872,6 +3876,9 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 	int rc, i, num_leds = 0, parsed_leds = 0;
 	const char *led_label;
 	bool regulator_probe = false;
+#if defined(CONFIG_MACH_XIAOMI_OXYGEN) && defined(CONFIG_BOOT_INFO)
+	u32 hw_version;
+#endif
 
 	node = pdev->dev.of_node;
 	if (node == NULL)
@@ -3889,6 +3896,9 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 	if (!led_array)
 		return -ENOMEM;
 
+#if defined(CONFIG_MACH_XIAOMI_OXYGEN) && defined(CONFIG_BOOT_INFO)
+	hw_version = get_hw_version();
+#endif
 	for_each_child_of_node(node, temp) {
 		led = &led_array[parsed_leds];
 		led->num_leds = num_leds;
@@ -3922,6 +3932,15 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 				"Failure reading led name, rc = %d\n", rc);
 			goto fail_id_check;
 		}
+
+#if defined(CONFIG_MACH_XIAOMI_OXYGEN) && defined(CONFIG_BOOT_INFO)
+		/*for Oxygen P3C version hardware, button backlight is driven by another chipset*/
+		if ((strcmp(led->cdev.name, "button-backlight") == 0) && hw_version == 0x180) {
+			dev_err(&led->pdev->dev,
+				"hw_version 0x%x not support mpp button-backlight\n", hw_version);
+			continue;
+		}
+#endif
 
 		rc = of_property_read_u32(temp, "qcom,max-current",
 			&led->max_current);
