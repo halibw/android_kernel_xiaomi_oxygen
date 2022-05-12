@@ -3,6 +3,75 @@
 &pmi_haptic{
 	qcom,lra-auto-res-mode="qwd";
 	qcom,lra-high-z="opt1";
+/*
 	qcom,lra-res-cal-period = <0>;
 	qcom,wave-play-rate-us = <4165>;
+*/
+};
+
+/* msm8953-mtp.dtsi */
+&soc {
+	gpio_keys {
+		hall_key {
+			label = "hall_key";
+			gpios = <&tlmm 140 0x01>;
+			linux,input-type = <5>;
+			linux,code = <0>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+	};
+};
+&pm8953_typec {
+	/delete-property/ qcom,ssmux-gpio;
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+};
+
+/* msm8953-oxygen.dtsi */
+&soc {
+	gpio_keys {
+		/delete-node/ camera_focus;
+		/delete-node/ camera_snapshot;
+	};
+};
+&pmi_haptic{
+	qcom,lra-res-cal-period = <4>;
+	qcom,wave-play-rate-us = <5100>;
+	qcom,wave-shape = "sine";
+	qcom,vmax-mv = <2088>;
+	qcom,brake-pattern = [03 02 01 00];
+	qcom,misc-trim-error-rc19p2-clk-reg-present;
+};
+&usb3 {
+	qcom,detect-dpdm-floating;
+};
+/* NOTE: Needs adaption */
+&pm8953_gpios {
+	/* GPIO 2 (NFC_CLK_REQ) */
+	gpio@c100 {
+		/delete-property/ qcom,output-type;
+		/delete-property/ qcom,pull;
+		/delete-property/ qcom,out-strength;
+	};
+
+	/* GPIO 8 (USB_HS_ID) */
+	gpio@c700 {
+		/* pm8953 gpio_8 default voltage source is vin3, should change to vin1 */
+		qcom,vin-sel = <1>;
+		status = "okay";
+	};
+};
+&qusb_phy {
+		qcom,qusb-phy-init-seq = <0xF8 0x80
+					0x23 0x84
+					0x83 0x88
+					0xC0 0x8C
+					0x14 0x9C
+					0x30 0x08
+					0x79 0x0C
+					0x21 0x10
+					0x00 0x90
+					0x9F 0x1C
+					0x00 0x18>;
 };
