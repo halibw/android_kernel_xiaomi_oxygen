@@ -5,6 +5,7 @@
  * (C) Copyright 1999 Johannes Erdfelt
  * (C) Copyright 1999 Gregory P. Smith
  * (C) Copyright 2001 Brad Hards (bhards@bigpond.net.au)
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  */
 
@@ -3078,6 +3079,7 @@ EXPORT_SYMBOL_GPL(usb_enable_ltm);
  * enable remote wake for the first interface.  FIXME if the interface
  * association descriptor shows there's more than one function.
  */
+#ifndef CONFIG_MACH_XIAOMI_OXYGEN
 static int usb_enable_remote_wakeup(struct usb_device *udev)
 {
 	if (udev->speed < USB_SPEED_SUPER)
@@ -3093,6 +3095,7 @@ static int usb_enable_remote_wakeup(struct usb_device *udev)
 					USB_INTRF_FUNC_SUSPEND_LP,
 				NULL, 0, USB_CTRL_SET_TIMEOUT);
 }
+#endif
 
 /*
  * usb_disable_remote_wakeup - disable remote wakeup for a device
@@ -3191,6 +3194,12 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 	 * NOTE:  OTG devices may issue remote wakeup (or SRP) even when
 	 * we don't explicitly enable it here.
 	 */
+	/*
+	 * disable remote wakeup, as msm8953 remote wakeup feature
+	 * is not stable, some USB earphone may disconnect when try
+	 * to do remote wakeup
+	 */
+#ifndef CONFIG_MACH_XIAOMI_OXYGEN
 	if (udev->do_remote_wakeup) {
 		status = usb_enable_remote_wakeup(udev);
 		if (status) {
@@ -3201,6 +3210,7 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 				goto err_wakeup;
 		}
 	}
+#endif
 
 	/* disable USB2 hardware LPM */
 	usb_disable_usb2_hardware_lpm(udev);
@@ -3253,7 +3263,9 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 
 		if (udev->do_remote_wakeup)
 			(void) usb_disable_remote_wakeup(udev);
+#ifndef CONFIG_MACH_XIAOMI_OXYGEN
  err_wakeup:
+#endif
 
 		/* System sleep transitions should never fail */
 		if (!PMSG_IS_AUTO(msg))
