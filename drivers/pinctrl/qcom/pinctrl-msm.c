@@ -508,6 +508,11 @@ static void msm_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 	unsigned i;
 
 	for (i = 0; i < chip->ngpio; i++, gpio++) {
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+		/*WA: bypass TZ access only GPIOs*/
+		if ((i >= 0 && i <= 3) || (i >= 135 && i <= 138))
+			continue;
+#endif
 		msm_gpio_dbg_show_one(s, NULL, chip, i, gpio);
 		seq_puts(s, "\n");
 	}
