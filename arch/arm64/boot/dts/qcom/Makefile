@@ -1,3 +1,5 @@
+ifneq ($(CONFIG_MACH_XIAOMI_OXYGEN),y)
+
 dtb-$(CONFIG_ARCH_QCOM)	+= apq8016-sbc.dtb msm8916-mtp.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= msm8996-mtp.dtb
 dtb-$(CONFIG_ARCH_QCOM)	+= apq8096-db820c.dtb
@@ -677,6 +679,12 @@ dtb-$(CONFIG_ARCH_SDM429) += sdm429-mtp.dtb \
 endif
 
 dtb-$(CONFIG_ARCH_SDM845_VM) += sdm845-vm.dtb
+
+else # CONFIG_MACH_XIAOMI_OXYGEN
+
+dtb-$(CONFIG_MACH_XIAOMI_OXYGEN) += oxygen/msm8953-oxygen.dtb
+
+endif # CONFIG_MACH_XIAOMI_OXYGEN
 
 always		:= $(dtb-y)
 subdir-y	:= $(dts-dirs)
