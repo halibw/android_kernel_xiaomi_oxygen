@@ -1452,4 +1452,7 @@ config TOUCHSCREEN_RAYDIUM_CHIPSET
 
 	  If unsure, say N.
 
+source "drivers/input/touchscreen/synaptics_dsx_force/Kconfig"
+source "drivers/input/touchscreen/ft5x46/Kconfig"
+
 endif
