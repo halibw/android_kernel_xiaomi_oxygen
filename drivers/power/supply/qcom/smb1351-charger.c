@@ -1,4 +1,5 @@
 /* Copyright (c) 2016-2018 The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -28,6 +29,8 @@
 #include <linux/delay.h>
 #include <linux/qpnp/qpnp-adc.h>
 #include <linux/pinctrl/consumer.h>
+#include <linux/gpio.h>
+#include <linux/of_gpio.h>
 
 /* Mask/Bit helpers */
 #define _SMB1351_MASK(BITS, POS) \
@@ -510,6 +513,7 @@ struct smb1351_charger {
 	unsigned int		batt_warm_mv;
 	unsigned int		batt_cool_ma;
 	unsigned int		batt_cool_mv;
+	unsigned int		chg_en_gpio;
 
 	/* pinctrl parameters */
 	const char		*pinctrl_state_name;
@@ -1325,13 +1329,12 @@ static int smb1351_set_usb_chg_current(struct smb1351_charger *chip,
 	} else if (current_ma == USB3_MIN_CURRENT_MA) {
 		/* USB 3.0 - 150mA */
 		reg = CMD_USB_3_MODE | CMD_USB_100_MODE;
-	} else if (current_ma == USB2_MAX_CURRENT_MA) {
-		/* USB 2.0 - 500mA */
-		reg = CMD_USB_2_MODE | CMD_USB_500_MODE;
-	} else if (current_ma == USB3_MAX_CURRENT_MA) {
-		/* USB 3.0 - 900mA */
-		reg = CMD_USB_3_MODE | CMD_USB_500_MODE;
-	} else if (current_ma > USB2_MAX_CURRENT_MA) {
+	/*
+	 * As smb1351 is used only for parallel charging for our product,
+	 * sometime, current_ma may be 500mA to 900mA, we should set
+	 * high current mode for them, if not, smb1351 will not charge
+	 */
+	} else if (current_ma >= USB2_MAX_CURRENT_MA) {
 		/* HC mode  - if none of the above */
 		reg = CMD_USB_AC_MODE;
 
@@ -2935,6 +2938,17 @@ static int smb1351_parse_dt(struct smb1351_charger *chip)
 						&chip->batt_missing_decidegc);
 
 	chip->pinctrl_state_name = of_get_property(node, "pinctrl-names", NULL);
+
+	chip->chg_en_gpio = of_get_named_gpio(node, "qcom,parallel-chg-en", 0);
+	if (gpio_is_valid(chip->chg_en_gpio)) {
+		rc = gpio_request(chip->chg_en_gpio, "parallel_en_gpio");
+		if (rc)
+			pr_err("failed to request parallel_en_gpio rc = %d\n", rc);
+		/* set parallel_en_gpio to low to enable smb1351 charging */
+		rc = gpio_direction_output(chip->chg_en_gpio, 0);
+		if (rc)
+			pr_err("unable to set output low rc = %d\n", rc);
+	}
 
 	return 0;
 }
