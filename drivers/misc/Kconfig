@@ -631,6 +631,12 @@ config KINECTICS_XR_NORDIC
 	  this also parses the gpios and interrupts from device tree and sets
 	  the gpios and interrupt handler for handling the interrupt.
 
+config GPIO13_RF
+	tristate "setting gpio13 for RF"
+	default n
+	help
+	 Enable this module if dynamically change RF paramaters by monitor status of GPIO13.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
