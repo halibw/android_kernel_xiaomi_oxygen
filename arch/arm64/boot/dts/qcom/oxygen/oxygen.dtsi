@@ -1,0 +1,2 @@
+#include "battery.dtsi"
+#include "misc.dtsi"

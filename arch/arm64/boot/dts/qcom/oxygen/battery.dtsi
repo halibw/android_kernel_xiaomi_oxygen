@@ -1,0 +1,20 @@
+/* k4.9 msm8953-mtp.dts */
+
+/{
+	mtp_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <15>;
+		#include "../batterydata-itech-3000mah.dtsi"
+		#include "../batterydata-ascent-3450mAh.dtsi"
+	};
+};
+
+&qpnp_fg {
+	qcom,battery-data = <&mtp_batterydata>;
+};
+
+&qpnp_smbcharger {
+	qcom,battery-data = <&mtp_batterydata>;
+	qcom,chg-led-sw-controls;
+	qcom,chg-led-support;
+	qcom,usbin-vadc = <&pmi8950_vadc>;
+};
