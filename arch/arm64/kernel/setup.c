@@ -3,6 +3,7 @@
  *
  * Copyright (C) 1995-2001 Russell King
  * Copyright (C) 2012 ARM Ltd.
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -67,6 +68,11 @@
 static int num_standard_resources;
 static struct resource *standard_resources;
 
+#ifdef CONFIG_BOOT_INFO
+#include <asm/bootinfo.h>
+#include <linux/hwinfo.h>
+#endif
+
 phys_addr_t __fdt_pointer __initdata;
 
 /* Vendor stub */
@@ -102,6 +108,20 @@ static struct resource mem_res[] = {
  * The recorded values of x0 .. x3 upon kernel entry.
  */
 u64 __cacheline_aligned boot_args[4];
+
+#if defined(CONFIG_OF_FLATTREE) && defined(CONFIG_BOOT_INFO)
+void __init early_init_dt_setup_pureason_arch(unsigned long pu_reason)
+{
+	set_powerup_reason(pu_reason);
+	pr_info("Powerup reason=0x%x\n", get_powerup_reason());
+}
+
+void __init early_init_dt_setup_hwversion_arch(unsigned long hw_version)
+{
+	set_hw_version(hw_version);
+	pr_info("Hw version=0x%x\n", get_hw_version());
+}
+#endif
 
 void __init smp_setup_processor_id(void)
 {
@@ -291,6 +311,39 @@ static int __init reserve_memblock_reserved_regions(void)
 	return 0;
 }
 arch_initcall(reserve_memblock_reserved_regions);
+
+#ifdef CONFIG_BOOT_INFO
+void __init early_init_dt_setup_smeminfo_arch(unsigned long smem_info)
+{
+	unsigned int ddr_info;
+
+	switch (smem_info) {
+	case 0x01:
+		ddr_info = 0x01;
+		break;
+	case 0x03:
+		ddr_info = 0x03;
+		break;
+	case 0x06:
+		ddr_info = 0x02;
+		break;
+	case 0xff:
+		ddr_info = 0x04;
+		break;
+	case 0x05:
+		ddr_info = 0x05;
+		break;
+	case 0x0e:
+		ddr_info = 0x06;
+		break;
+	default:
+		ddr_info = 0x00;
+		break;
+	}
+	update_hardware_info(TYPE_DDR, ddr_info);
+	pr_info("Smem info=0x%x\n", ddr_info);
+}
+#endif
 
 u64 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_HWID };
 

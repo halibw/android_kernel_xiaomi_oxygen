@@ -959,6 +959,13 @@ config ARCH_MEMORY_PROBE
 config CC_HAVE_SHADOW_CALL_STACK
 	def_bool $(cc-option, -fsanitize=shadow-call-stack -ffixed-x18)
 
+config BOOT_INFO
+	bool "Boot information from bootloader"
+	default y
+	help
+	  On embedded linux device, we try to collect more information from
+	  bootloader to kernel. eg. powerup reason.
+
 config ARM64_DMA_USE_IOMMU
 	bool "ARM64 DMA iommu integration"
 	select ARM_HAS_SG_CHAIN
