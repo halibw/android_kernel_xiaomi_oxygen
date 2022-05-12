@@ -21,6 +21,9 @@
 #include <linux/mmc/mmc.h>
 #include <linux/reboot.h>
 #include <trace/events/mmc.h>
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+#include <linux/mmc/ffu.h>
+#endif
 
 #include "core.h"
 #include "host.h"
@@ -3222,6 +3225,11 @@ int mmc_attach_mmc(struct mmc_host *host)
 		mmc_release_host(host);
 		goto remove_card;
 	}
+
+	/*do ffu after mmc_init_clk_scaling for 8953*/
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+	mmc_ffu(host->card);
+#endif
 
 	register_reboot_notifier(&host->card->reboot_notify);
 
