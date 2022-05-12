@@ -10,3 +10,4 @@
 #include "ramoops.dtsi"
 #include "power.dtsi"
 #include "soc.dtsi"
+#include "touchscreen.dtsi"
