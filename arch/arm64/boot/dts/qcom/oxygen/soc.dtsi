@@ -19,7 +19,6 @@
 	};
 };
 &soc {
-	/* NOTE: Adaptions needed? */
 	spi_8: spi@7af8000 { /* BLSP2 QUP4 */
 		compatible = "qcom,spi-qup-v2";
 		#address-cells = <1>;
@@ -56,7 +55,6 @@
 };
 &soc {
 	/delete-node/ qseecom@85b00000;
-	/* NOTE: Adaptions needed? */
 	qcom_seecom: qseecom@84A00000 {
 		compatible = "qcom,qseecom";
 		reg = <0x84A00000 0x1900000>;
@@ -66,11 +64,11 @@
 		qcom,qsee-ce-hw-instance = <0>;
 		qcom,disk-encrypt-pipe-pair = <2>;
 		qcom,support-fde;
+		qcom,commonlib64-loaded-by-uefi;
 		qcom,msm-bus,name = "qseecom-noc";
 		qcom,msm-bus,num-cases = <4>;
 		qcom,msm-bus,num-paths = <1>;
 		qcom,support-bus-scaling;
-		qcom,appsbl-qseecom-support;
 		qcom,msm-bus,vectors-KBps =
 			<55 512 0 0>,
 			<55 512 0 0>,
@@ -83,5 +81,6 @@
 		clock-names = "core_clk_src", "core_clk",
 				"iface_clk", "bus_clk";
 		qcom,ce-opp-freq = <100000000>;
+		status = "okay";
 	};
 };
