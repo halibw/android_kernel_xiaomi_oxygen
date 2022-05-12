@@ -1,4 +1,5 @@
 /* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -324,6 +325,9 @@ struct device_node *of_batterydata_get_best_profile(
 	int delta = 0, best_delta = 0, best_id_kohm = 0, id_range_pct,
 		i = 0, rc = 0, limit = 0;
 	bool in_range = false;
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+	struct device_node *generic_node = NULL;
+#endif
 
 	/* read battery id range percentage for best profile */
 	rc = of_property_read_u32(batterydata_container_node,
@@ -373,9 +377,21 @@ struct device_node *of_batterydata_get_best_profile(
 				}
 			}
 		}
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+		rc = of_property_read_string(node, "qcom,battery-type",
+							&battery_type);
+		if (!rc && strcmp(battery_type, "itech_3000mah") == 0)
+				generic_node = node;
+#endif
 	}
 
 	if (best_node == NULL) {
+#ifdef CONFIG_MACH_XIAOMI_OXYGEN
+		/* now that best_node is null, there is no need to
+		 * check whether generic node is null. */
+		best_node = generic_node;
+		pr_err("No battery data found,use generic one\n");
+#endif
 		pr_err("No battery data found\n");
 		return best_node;
 	}
