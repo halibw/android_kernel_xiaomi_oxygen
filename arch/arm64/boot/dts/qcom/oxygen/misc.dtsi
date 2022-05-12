@@ -29,12 +29,6 @@
 };
 
 /* msm8953-oxygen.dtsi */
-&soc {
-	gpio_keys {
-		/delete-node/ camera_focus;
-		/delete-node/ camera_snapshot;
-	};
-};
 &pmi_haptic{
 	qcom,lra-res-cal-period = <4>;
 	qcom,wave-play-rate-us = <5100>;
