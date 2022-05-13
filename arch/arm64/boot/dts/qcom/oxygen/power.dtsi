@@ -80,3 +80,6 @@
 		gpio = <&tlmm 139 0>;
 	};
 };
+
+/* Custom changes */
+&eldo2_8953 { status = "disabled"; /delete-property/ gpio; };
