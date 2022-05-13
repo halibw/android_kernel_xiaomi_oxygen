@@ -127,6 +127,10 @@ ifdef CONFIG_SND_SOC_WSA881X_ANALOG
 	WSA881X_ANALOG_OBJS += wsa881x-regmap-analog.o
 endif
 
+ifdef CONFIG_SND_SOC_TAS2560_STEREO
+	TAS2560_OBJS += tas2560-core.o tas2560-misc.o tas2560-codec.o tas2560-regmap.o
+endif
+
 ifdef CONFIG_SND_SOC_MSM_STUB
 	STUB_OBJS += msm_stub.o
 endif
@@ -201,6 +205,9 @@ wsa881x_dlkm-y := $(WSA881X_OBJS)
 
 obj-$(CONFIG_SND_SOC_WSA881X_ANALOG) += wsa881x_analog_dlkm.o
 wsa881x_analog_dlkm-y := $(WSA881X_ANALOG_OBJS)
+
+obj-$(CONFIG_SND_SOC_TAS2560_STEREO) += tas2560_dlkm.o
+tas2560_dlkm-y += $(TAS2560_OBJS)
 
 obj-$(CONFIG_SND_SOC_MSM_STUB) += stub_dlkm.o
 stub_dlkm-y := $(STUB_OBJS)
