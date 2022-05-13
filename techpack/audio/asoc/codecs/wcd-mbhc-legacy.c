@@ -732,6 +732,9 @@ report:
 			mbhc->btn_press_intr);
 	WCD_MBHC_RSC_LOCK(mbhc);
 	wcd_mbhc_find_plug_and_report(mbhc, plug_type);
+	if (mbhc->current_plug == MBHC_PLUG_TYPE_HEADSET &&
+	    plug_type == MBHC_PLUG_TYPE_GND_MIC_SWAP)
+	    plug_type = MBHC_PLUG_TYPE_HEADSET;
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 enable_supply:
 	if (mbhc->mbhc_cb->mbhc_micbias_control)
