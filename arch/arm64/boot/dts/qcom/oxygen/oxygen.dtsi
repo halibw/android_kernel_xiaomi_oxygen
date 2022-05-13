@@ -6,6 +6,7 @@
 #include "soc.dtsi"
 
 #include "android.dtsi"
+#include "audio.dtsi"
 #include "battery.dtsi"
 #include "display.dtsi"
 #include "fingerprint.dtsi"
