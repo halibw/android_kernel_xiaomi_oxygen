@@ -18,17 +18,6 @@
 };
 
 /* msm8953-oxygen.dtsi */
-&pmi_haptic{
-	qcom,actuator-type = <1>;
-	qcom,lra-auto-res-mode="qwd";
-	qcom,lra-high-z="opt1";
-	qcom,lra-res-cal-period = <4>;
-	qcom,wave-play-rate-us = <5100>;
-	qcom,wave-shape = "sine";
-	qcom,vmax-mv = <2088>;
-	qcom,brake-pattern = [03 02 01 00];
-	qcom,misc-trim-error-rc19p2-clk-reg-present;
-};
 &usb3 {
 	qcom,detect-dpdm-floating;
 };
@@ -128,4 +117,23 @@
 			};
 		};
 	};
+};
+
+/* Haptics */
+&pmi_haptic{
+	qcom,actuator-type = "lra";
+	qcom,lra-auto-resonance-mode = "qwd";
+	qcom,lra-resonance-sig-shape = "sine";
+//	qcom,lra-high-z="opt1";
+//	qcom,lra-res-cal-period = <4>;
+//	qcom,misc-trim-error-rc19p2-clk-reg-present;
+//	qcom,brake-pattern = [03 02 01 00];
+	qcom,play-rate-us = <5100>;
+	qcom,vmax-mv = <2088>;
+	wf_0 { qcom,wf-vmax-mv = <2088>; };
+	wf_1 { qcom,wf-vmax-mv = <2088>; };
+	wf_2 { qcom,wf-vmax-mv = <2088>; };
+	wf_3 { qcom,wf-vmax-mv = <2088>; };
+	wf_4 { qcom,wf-vmax-mv = <2088>; };
+	wf_5 { qcom,wf-vmax-mv = <2088>; };
 };
