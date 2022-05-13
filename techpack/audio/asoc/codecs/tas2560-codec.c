@@ -80,7 +80,7 @@ static int tas2560_write(struct snd_soc_codec *codec, unsigned int reg,
 static int tas2560_mix_post_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
-	struct snd_soc_codec *codec = w->codec;
+	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct tas2560_priv *pTAS2560 = snd_soc_codec_get_drvdata(codec);
 	enum channel mchannel;
 
@@ -304,7 +304,7 @@ static struct snd_soc_dai_driver tas2560_dai_driver[] = {
 static int tas2560_codec_probe(struct snd_soc_codec *codec)
 {
 	struct tas2560_priv *pTAS2560 = snd_soc_codec_get_drvdata(codec);
-	struct snd_soc_dapm_context *dapm = &codec->dapm;
+	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec);
 	struct i2c_client *pClient;
 	static int nClient;
 	nClient = 0;
@@ -607,12 +607,14 @@ static struct snd_soc_codec_driver soc_codec_driver_tas2560 = {
 	.remove			= tas2560_codec_remove,
 	.read			= tas2560_read,
 	.write			= tas2560_write,
-	.controls		= tas2560_snd_controls,
-	.num_controls		= ARRAY_SIZE(tas2560_snd_controls),
-	.dapm_widgets		= tas2560_dapm_widgets,
-	.num_dapm_widgets	= ARRAY_SIZE(tas2560_dapm_widgets),
-	.dapm_routes		= tas2560_audio_map,
-	.num_dapm_routes	= ARRAY_SIZE(tas2560_audio_map),
+	.component_driver = {
+		.controls		= tas2560_snd_controls,
+		.num_controls		= ARRAY_SIZE(tas2560_snd_controls),
+		.dapm_widgets		= tas2560_dapm_widgets,
+		.num_dapm_widgets	= ARRAY_SIZE(tas2560_dapm_widgets),
+		.dapm_routes		= tas2560_audio_map,
+		.num_dapm_routes	= ARRAY_SIZE(tas2560_audio_map),
+	},
 };
 
 int tas2560_register_codec(struct tas2560_priv *pTAS2560)

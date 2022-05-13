@@ -475,6 +475,9 @@ struct snd_soc_dapm_widget *snd_soc_dapm_kcontrol_widget(
 int snd_soc_dapm_force_bias_level(struct snd_soc_dapm_context *dapm,
 	enum snd_soc_bias_level level);
 
+struct snd_soc_dapm_widget_list *dapm_kcontrol_get_wlist(
+        const struct snd_kcontrol *kcontrol);
+
 /* dapm widget types */
 enum snd_soc_dapm_type {
 	snd_soc_dapm_input = 0,		/* input pin */
