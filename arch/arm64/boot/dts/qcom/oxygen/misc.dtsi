@@ -1,14 +1,3 @@
-/* k4.9 msm8953-mtp.dts */
-
-&pmi_haptic{
-	qcom,lra-auto-res-mode="qwd";
-	qcom,lra-high-z="opt1";
-/*
-	qcom,lra-res-cal-period = <0>;
-	qcom,wave-play-rate-us = <4165>;
-*/
-};
-
 /* msm8953-mtp.dtsi */
 &soc {
 	gpio_keys {
@@ -30,6 +19,9 @@
 
 /* msm8953-oxygen.dtsi */
 &pmi_haptic{
+	qcom,actuator-type = "lra";
+	qcom,lra-auto-res-mode="qwd";
+	qcom,lra-high-z="opt1";
 	qcom,lra-res-cal-period = <4>;
 	qcom,wave-play-rate-us = <5100>;
 	qcom,wave-shape = "sine";
