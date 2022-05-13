@@ -8,6 +8,7 @@
 #include "android.dtsi"
 #include "battery.dtsi"
 #include "display.dtsi"
+#include "fingerprint.dtsi"
 #include "misc.dtsi"
 #include "ramoops.dtsi"
 #include "power.dtsi"
