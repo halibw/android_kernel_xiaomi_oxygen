@@ -21,13 +21,6 @@
 &qpnp_smbcharger {
 	/delete-property/ qcom,autoadjust-vfloat;
 };
-&spmi_bus {
-	qcom,pmi8950@2 {
-		qcom,leds@a100 {
-			/delete-node/ qcom,led_mpp_2;
-		};
-	};
-};
 &wled {
 	qcom,switch-freq-khz = <600>;
 	/delete-property/ qcom,en-ext-pfet-sc-pro;
