@@ -1,5 +1,5 @@
 /* msm-audio.dtsi */
-&dai_mi2s5 {
+&dai_mi2s4 {
     qcom,msm-mi2s-rx-lines = <0xc>;
     qcom,msm-mi2s-tx-lines = <3>;
 };
