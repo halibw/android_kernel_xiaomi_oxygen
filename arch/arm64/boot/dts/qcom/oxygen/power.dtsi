@@ -39,12 +39,6 @@
 &pm8953_l10 {
 	regulator-max-microvolt = <2850000>;
 };
-/* NOTE: Missing on k4.9 */
-/*
-&fp_vdd_vreg {
-	regulator-always-on;
-};
-*/
 &pm8953_l6 {
 	regulator-always-on;
 };
@@ -65,13 +59,6 @@
 /*
 	/delete-node/ eldo2;
 */
-	fp_vdd_vreg: fp_vdd_vreg {
-		compatible = "regulator-fixed";
-		regulator-name = "fp_vdd_vreg";
-		startup-delay-us = <4000>;
-		enable-active-high;
-		gpio = <&tlmm 139 0>;
-	};
 };
 
 /* Custom changes */

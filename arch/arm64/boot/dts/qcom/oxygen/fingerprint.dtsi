@@ -1,4 +1,12 @@
 &soc {
+	fp_vdd_vreg: fp_vdd_vreg {
+		compatible = "regulator-fixed";
+		regulator-name = "fp_vdd_vreg";
+		startup-delay-us = <4000>;
+		enable-active-high;
+		gpio = <&tlmm 139 0>;
+		regulator-always-on;
+	};
 	fingerprint_goodix {
 		compatible = "goodix,fingerprint";
 		interrupt-parent = <&tlmm>;
