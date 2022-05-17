@@ -19,7 +19,7 @@
 
 /* msm8953-oxygen.dtsi */
 &pmi_haptic{
-	qcom,actuator-type = "lra";
+	qcom,actuator-type = <1>;
 	qcom,lra-auto-res-mode="qwd";
 	qcom,lra-high-z="opt1";
 	qcom,lra-res-cal-period = <4>;
