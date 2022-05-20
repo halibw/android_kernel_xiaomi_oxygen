@@ -44,6 +44,12 @@
 #include <linux/ktime.h>
 #include <linux/extcon.h>
 #include <linux/pmic-voter.h>
+#include <linux/fb.h>
+
+#if defined(CONFIG_FB)
+static int fb_notifier_callback(struct notifier_block *self,
+				unsigned long event, void *data);
+#endif
 
 /* Mask/Bit helpers */
 #define _SMB_MASK(BITS, POS) \
@@ -156,6 +162,14 @@ struct smbchg_chip {
 	struct dentry			*debug_root;
 	struct smbchg_version_tables	tables;
 
+#if defined(CONFIG_FB)
+	struct notifier_block 		fb_notif;
+	struct delayed_work		screen_on_work;
+	bool				screen_on;
+	bool				checking_in_progress;
+	bool				screen_on_timeout;
+	struct mutex		screen_lock;
+#endif
 	/* wipower params */
 	struct ilim_map			wipower_default;
 	struct ilim_map			wipower_pt;
@@ -212,7 +226,16 @@ struct smbchg_chip {
 	bool				batt_cool;
 	unsigned int			thermal_levels;
 	unsigned int			therm_lvl_sel;
+#if defined(CONFIG_FB)
+	unsigned int			*thermal_mitigation_screen_off;
+	unsigned int			*thermal_mitigation_hvdcp_screen_off;
+	unsigned int			*thermal_mitigation_screen_on;
+	unsigned int			*thermal_mitigation_hvdcp_screen_on;
+	unsigned int			*thermal_fcc_screen_off;
+	unsigned int			*thermal_fcc_screen_on;
+#else
 	unsigned int			*thermal_mitigation;
+#endif
 
 	/* irqs */
 	int				batt_hot_irq;
@@ -346,6 +369,9 @@ enum wake_reason {
 #define ESR_PULSE_FCC_VOTER	"ESR_PULSE_FCC_VOTER"
 #define BATT_TYPE_FCC_VOTER	"BATT_TYPE_FCC_VOTER"
 #define RESTRICTED_CHG_FCC_VOTER	"RESTRICTED_CHG_FCC_VOTER"
+#if defined(CONFIG_FB)
+#define THERMAL_FCC_VOTER	"THERMAL_FCC_VOTER"
+#endif
 
 /* ICL VOTERS */
 #define PSY_ICL_VOTER		"PSY_ICL_VOTER"
@@ -502,6 +528,10 @@ module_param_named(
 			pr_debug(fmt, ##__VA_ARGS__);	\
 	} while (0)
 
+#if defined(CONFIG_FB)
+static bool is_hvdcp_present(struct smbchg_chip *chip);
+#endif
+
 static int smbchg_read(struct smbchg_chip *chip, u8 *val,
 			u16 addr, int count)
 {
@@ -633,6 +663,138 @@ static void smbchg_relax(struct smbchg_chip *chip, int reason)
 	chip->wake_reasons = reasons;
 	mutex_unlock(&chip->pm_lock);
 };
+
+#if defined(CONFIG_FB)
+#define MAX_TEMP_LEVEL		7
+static int smbchg_therm_charging(struct smbchg_chip *chip, bool on)
+{
+	int thermal_icl_ma, thermal_fcc_ma;
+	int rc;
+
+	if (chip->therm_lvl_sel >= MAX_TEMP_LEVEL)
+		return 0;
+
+	if (on) {
+		/* screen on */
+		if (is_hvdcp_present(chip)
+				&& chip->usb_supply_type == POWER_SUPPLY_TYPE_USB_HVDCP)
+			thermal_icl_ma =
+					(int)chip->thermal_mitigation_hvdcp_screen_on[chip->therm_lvl_sel];
+		else
+			thermal_icl_ma =
+					(int)chip->thermal_mitigation_screen_on[chip->therm_lvl_sel];
+		thermal_fcc_ma =
+					(int)chip->thermal_fcc_screen_on[chip->therm_lvl_sel];
+	} else {
+		/* screen off */
+		if (is_hvdcp_present(chip)
+				&& chip->usb_supply_type == POWER_SUPPLY_TYPE_USB_HVDCP)
+			thermal_icl_ma =
+					(int)chip->thermal_mitigation_hvdcp_screen_off[chip->therm_lvl_sel];
+		else
+			thermal_icl_ma =
+					(int)chip->thermal_mitigation_screen_off[chip->therm_lvl_sel];
+		thermal_fcc_ma =
+					(int)chip->thermal_fcc_screen_off[chip->therm_lvl_sel];
+	}
+
+	if ((chip->therm_lvl_sel == 0) && (!on)) {
+		/* if therm_lvl_sel is 0 and screen off, disable thermal voter */
+		rc = vote(chip->usb_icl_votable, THERMAL_ICL_VOTER, false, 0);
+		if (rc < 0)
+			pr_err("Couldn't disable USB thermal ICL vote rc=%d\n",
+					rc);
+
+		rc = vote(chip->dc_icl_votable, THERMAL_ICL_VOTER, false, 0);
+		if (rc < 0)
+			pr_err("Couldn't disable DC thermal ICL vote rc=%d\n",
+					rc);
+
+		rc = vote(chip->fcc_votable, THERMAL_FCC_VOTER, false, 0);
+		if (rc < 0)
+			pr_err("Couldn't vote USB thermal FCC %d\n", rc);
+	} else {
+		pr_info("thermal_icl_ma is %d, thermal_fcc_ma is %d\n",
+				thermal_icl_ma, thermal_fcc_ma);
+
+		rc = vote(chip->usb_icl_votable, THERMAL_ICL_VOTER, true,
+				thermal_icl_ma);
+		if (rc < 0)
+			pr_err("Couldn't vote for USB thermal ICL rc=%d\n", rc);
+
+		rc = vote(chip->dc_icl_votable, THERMAL_ICL_VOTER, true,
+				thermal_icl_ma);
+		if (rc < 0)
+			pr_err("Couldn't vote for DC thermal ICL rc=%d\n", rc);
+
+		rc = vote(chip->fcc_votable, THERMAL_FCC_VOTER, true,
+				thermal_fcc_ma);
+		if (rc < 0)
+			pr_err("Couldn't vote USB thermal FCC %d\n", rc);
+	}
+
+	return rc;
+}
+
+static void smbchg_screen_on_work(struct work_struct *work)
+{
+	struct smbchg_chip *chip = container_of(work,
+				struct smbchg_chip,
+				screen_on_work.work);
+
+	mutex_lock(&chip->screen_lock);
+	chip->checking_in_progress = false;
+	chip->screen_on_timeout = true;
+	mutex_unlock(&chip->screen_lock);
+	/* if usb is not present , no actions */
+	if (!chip->usb_present)
+		return;
+	mutex_lock(&chip->therm_lvl_lock);
+	if (chip->screen_on)
+		smbchg_therm_charging(chip, true);
+	else
+		smbchg_therm_charging(chip, false);
+	mutex_unlock(&chip->therm_lvl_lock);
+}
+
+#define SCREEN_ON_CHECK_MS	90000
+#define SCREEN_OFF_CHECK_MS	5000
+static int fb_notifier_callback(struct notifier_block *self,
+				unsigned long event, void *data)
+{
+	struct fb_event *evdata = data;
+	int screen_check_ms;
+	int *blank;
+	struct smbchg_chip *chip =
+			container_of(self, struct smbchg_chip, fb_notif);
+
+	mutex_lock(&chip->screen_lock);
+	chip->screen_on_timeout = false;
+	if (evdata && evdata->data && event == FB_EVENT_BLANK) {
+		blank = evdata->data;
+
+		if (*blank == FB_BLANK_UNBLANK) {
+			chip->screen_on = true;
+			screen_check_ms = SCREEN_ON_CHECK_MS;
+			pr_info("screen on\n");
+		} else if (*blank == FB_BLANK_POWERDOWN) {
+			chip->screen_on = false;
+			screen_check_ms = SCREEN_OFF_CHECK_MS;
+			pr_info("screen off\n");
+		}
+
+		if (!chip->checking_in_progress &&
+				((*blank == FB_BLANK_UNBLANK) ||
+				 (*blank == FB_BLANK_POWERDOWN))) {
+			chip->checking_in_progress = true;
+			schedule_delayed_work(&chip->screen_on_work,
+				msecs_to_jiffies(screen_check_ms));
+		}
+	}
+	mutex_unlock(&chip->screen_lock);
+	return 0;
+}
+#endif
 
 static bool is_bms_psy_present(struct smbchg_chip *chip)
 {
@@ -2917,14 +3079,31 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 static int smbchg_system_temp_level_set(struct smbchg_chip *chip,
 								int lvl_sel)
 {
+#if defined(CONFIG_FB)
+	int rc = 0;
+	int prev_therm_lvl;
+#else
 	int rc = 0;
 	int prev_therm_lvl;
 	int thermal_icl_ma;
+#endif
 
+#if defined(CONFIG_FB)
+	if (!chip->thermal_mitigation_screen_off
+			|| !chip->thermal_mitigation_hvdcp_screen_off
+			|| !chip->thermal_mitigation_screen_on
+			|| !chip->thermal_mitigation_hvdcp_screen_on
+			|| !chip->thermal_fcc_screen_off
+			|| !chip->thermal_fcc_screen_on) {
+		dev_err(chip->dev, "Thermal mitigation not supported\n");
+		return -EINVAL;
+	}
+#else
 	if (!chip->thermal_mitigation) {
 		dev_err(chip->dev, "Thermal mitigation not supported\n");
 		return -EINVAL;
 	}
+#endif
 
 	if (lvl_sel < 0) {
 		dev_err(chip->dev, "Unsupported level selected %d\n", lvl_sel);
@@ -2963,6 +3142,21 @@ static int smbchg_system_temp_level_set(struct smbchg_chip *chip,
 		goto out;
 	}
 
+#if defined(CONFIG_FB)
+	rc = smbchg_therm_charging(chip, chip->screen_on);
+	if (rc < 0)
+		pr_err("smbchg_therm_charging failed: rc=%d\n",
+			rc);
+	/*
+	 * when thermal recover to inactive(level 0), we should disable
+	 * parallell charging, disable THERMAL_ICL_VOTER then launch
+	 * new parallel charging after that.
+	 */
+	if ((prev_therm_lvl > 0) && (chip->therm_lvl_sel == 0)) {
+		if (chip->parallel.current_max_ma != 0)
+			smbchg_parallel_usb_disable(chip);
+	}
+#else
 	if (chip->therm_lvl_sel == 0) {
 		rc = vote(chip->usb_icl_votable, THERMAL_ICL_VOTER, false, 0);
 		if (rc < 0)
@@ -2986,6 +3180,7 @@ static int smbchg_system_temp_level_set(struct smbchg_chip *chip,
 		if (rc < 0)
 			pr_err("Couldn't vote for DC thermal ICL rc=%d\n", rc);
 	}
+#endif
 
 	if (prev_therm_lvl == chip->thermal_levels - 1) {
 		/*
@@ -4490,6 +4685,28 @@ static int smbchg_set_optimal_charging_mode(struct smbchg_chip *chip, int type)
 	return 0;
 }
 
+#if defined(CONFIG_FB)
+static void determine_thermal_current(struct smbchg_chip *chip)
+{
+	if (chip->therm_lvl_sel == 0) {
+		if (chip->screen_on_timeout && chip->screen_on)
+			smbchg_therm_charging(chip, true);
+		return;
+	}
+
+	mutex_lock(&chip->therm_lvl_lock);
+	if (chip->therm_lvl_sel > 0
+			&& chip->therm_lvl_sel < (chip->thermal_levels - 1)) {
+		/*
+		 * consider thermal limit only when it is active and not at
+		 * the highest level
+		 */
+		smbchg_therm_charging(chip, chip->screen_on);
+	}
+	mutex_unlock(&chip->therm_lvl_lock);
+}
+#endif
+
 #define DEFAULT_SDP_MA		100
 #define DEFAULT_CDP_MA		1500
 static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
@@ -4552,6 +4769,11 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 		chip->usb_psy_d.type = POWER_SUPPLY_TYPE_USB;
 	else
 		chip->usb_psy_d.type = chip->usb_supply_type;
+
+#if defined(CONFIG_FB)
+	if (chip->usb_supply_type != POWER_SUPPLY_TYPE_UNKNOWN)
+		determine_thermal_current(chip);
+#endif
 
 	if (!chip->skip_usb_notification)
 		power_supply_changed(chip->usb_psy);
@@ -7733,6 +7955,139 @@ static int smb_parse_dt(struct smbchg_chip *chip)
 	chip->cfg_chg_led_support =
 		of_property_read_bool(node, "qcom,chg-led-support");
 
+#if defined(CONFIG_FB)
+	if (of_find_property(node, "qcom,thermal-mitigation-screen-off",
+					&chip->thermal_levels)) {
+		chip->thermal_mitigation_screen_off = devm_kzalloc(chip->dev,
+			chip->thermal_levels,
+			GFP_KERNEL);
+
+		if (chip->thermal_mitigation_screen_off == NULL) {
+			dev_err(chip->dev, "thermal mitigation kzalloc() failed.\n");
+			return -ENOMEM;
+		}
+
+		chip->thermal_levels /= sizeof(int);
+		rc = of_property_read_u32_array(node,
+				"qcom,thermal-mitigation-screen-off",
+				chip->thermal_mitigation_screen_off, chip->thermal_levels);
+		if (rc) {
+			dev_err(chip->dev,
+				"Couldn't read threm limits rc = %d\n", rc);
+			return rc;
+		}
+	}
+
+	if (of_find_property(node, "qcom,thermal-mitigation-hvdcp-screen-off",
+					&chip->thermal_levels)) {
+		chip->thermal_mitigation_hvdcp_screen_off = devm_kzalloc(chip->dev,
+			chip->thermal_levels,
+			GFP_KERNEL);
+
+		if (chip->thermal_mitigation_hvdcp_screen_off == NULL) {
+			dev_err(chip->dev, "thermal mitigation kzalloc() failed.\n");
+			return -ENOMEM;
+		}
+
+		chip->thermal_levels /= sizeof(int);
+		rc = of_property_read_u32_array(node,
+				"qcom,thermal-mitigation-hvdcp-screen-off",
+				chip->thermal_mitigation_hvdcp_screen_off, chip->thermal_levels);
+		if (rc) {
+			dev_err(chip->dev,
+				"Couldn't read threm limits rc = %d\n", rc);
+			return rc;
+		}
+	}
+
+	if (of_find_property(node, "qcom,thermal-mitigation-screen-on",
+					&chip->thermal_levels)) {
+		chip->thermal_mitigation_screen_on = devm_kzalloc(chip->dev,
+			chip->thermal_levels,
+			GFP_KERNEL);
+
+		if (chip->thermal_mitigation_screen_on == NULL) {
+			dev_err(chip->dev, "thermal mitigation kzalloc() failed.\n");
+			return -ENOMEM;
+		}
+
+		chip->thermal_levels /= sizeof(int);
+		rc = of_property_read_u32_array(node,
+				"qcom,thermal-mitigation-screen-on",
+				chip->thermal_mitigation_screen_on, chip->thermal_levels);
+		if (rc) {
+			dev_err(chip->dev,
+				"Couldn't read threm limits rc = %d\n", rc);
+			return rc;
+		}
+	}
+
+	if (of_find_property(node, "qcom,thermal-mitigation-hvdcp-screen-on",
+					&chip->thermal_levels)) {
+		chip->thermal_mitigation_hvdcp_screen_on = devm_kzalloc(chip->dev,
+			chip->thermal_levels,
+			GFP_KERNEL);
+
+		if (chip->thermal_mitigation_hvdcp_screen_on == NULL) {
+			dev_err(chip->dev, "thermal mitigation kzalloc() failed.\n");
+			return -ENOMEM;
+		}
+
+		chip->thermal_levels /= sizeof(int);
+		rc = of_property_read_u32_array(node,
+				"qcom,thermal-mitigation-hvdcp-screen-on",
+				chip->thermal_mitigation_hvdcp_screen_on, chip->thermal_levels);
+		if (rc) {
+			dev_err(chip->dev,
+				"Couldn't read threm limits rc = %d\n", rc);
+			return rc;
+		}
+	}
+
+	if (of_find_property(node, "qcom,thermal-fcc-screen-off",
+					&chip->thermal_levels)) {
+		chip->thermal_fcc_screen_off = devm_kzalloc(chip->dev,
+			chip->thermal_levels,
+			GFP_KERNEL);
+
+		if (chip->thermal_fcc_screen_off == NULL) {
+			dev_err(chip->dev, "thermal mitigation kzalloc() failed.\n");
+			return -ENOMEM;
+		}
+
+		chip->thermal_levels /= sizeof(int);
+		rc = of_property_read_u32_array(node,
+				"qcom,thermal-fcc-screen-off",
+				chip->thermal_fcc_screen_off, chip->thermal_levels);
+		if (rc) {
+			dev_err(chip->dev,
+				"Couldn't read threm limits rc = %d\n", rc);
+			return rc;
+		}
+	}
+
+	if (of_find_property(node, "qcom,thermal-fcc-screen-on",
+						&chip->thermal_levels)) {
+		chip->thermal_fcc_screen_on = devm_kzalloc(chip->dev,
+			chip->thermal_levels,
+			GFP_KERNEL);
+
+		if (chip->thermal_fcc_screen_on == NULL) {
+			dev_err(chip->dev, "thermal mitigation kzalloc() failed.\n");
+			return -ENOMEM;
+		}
+
+		chip->thermal_levels /= sizeof(int);
+		rc = of_property_read_u32_array(node,
+				"qcom,thermal-fcc-screen-on",
+				chip->thermal_fcc_screen_on, chip->thermal_levels);
+		if (rc) {
+			dev_err(chip->dev,
+				"Couldn't read threm limits rc = %d\n", rc);
+			return rc;
+		}
+	}
+#else
 	if (of_find_property(node, "qcom,thermal-mitigation",
 					&chip->thermal_levels)) {
 		chip->thermal_mitigation = devm_kzalloc(chip->dev,
@@ -7754,6 +8109,7 @@ static int smb_parse_dt(struct smbchg_chip *chip)
 			return rc;
 		}
 	}
+#endif
 
 	chip->skip_usb_notification
 		= of_property_read_bool(node,
@@ -8447,6 +8803,9 @@ static int smbchg_probe(struct platform_device *pdev)
 	mutex_init(&chip->pm_lock);
 	mutex_init(&chip->wipower_config);
 	mutex_init(&chip->usb_status_lock);
+#if defined(CONFIG_FB)
+	mutex_init(&chip->screen_lock);
+#endif
 	device_init_wakeup(chip->dev, true);
 
 	rc = smbchg_parse_peripherals(chip);
@@ -8601,6 +8960,14 @@ static int smbchg_probe(struct platform_device *pdev)
 	update_usb_status(chip, is_usb_present(chip), false);
 	dump_regs(chip);
 	create_debugfs_entries(chip);
+
+#if defined(CONFIG_FB)
+	chip->checking_in_progress = false;
+	chip->fb_notif.notifier_call = fb_notifier_callback;
+	fb_register_client(&chip->fb_notif);
+	INIT_DELAYED_WORK(&chip->screen_on_work, smbchg_screen_on_work);
+#endif
+
 	dev_info(chip->dev,
 		"SMBCHG successfully probe Charger version=%s Revision DIG:%d.%d ANA:%d.%d batt=%d dc=%d usb=%d\n",
 			version_str[chip->schg_version],
@@ -8769,7 +9136,33 @@ static void smbchg_shutdown(struct platform_device *pdev)
 	pr_smb(PR_STATUS, "wrote power off configurations\n");
 }
 
+#if defined(CONFIG_FB)
+static int smbchg_suspend(struct device *dev)
+{
+	struct smbchg_chip *chip = dev_get_drvdata(dev);
+
+	cancel_delayed_work(&chip->screen_on_work);
+	chip->checking_in_progress = false;
+
+	return 0;
+}
+
+static int smbchg_resume(struct device *dev)
+{
+	struct smbchg_chip *chip = dev_get_drvdata(dev);
+
+	if (chip->dc_psy)
+		power_supply_changed(chip->batt_psy);
+
+	return 0;
+}
+#endif
+
 static const struct dev_pm_ops smbchg_pm_ops = {
+#if defined(CONFIG_FB)
+	.suspend = smbchg_suspend,
+	.resume = smbchg_resume,
+#endif
 };
 
 MODULE_DEVICE_TABLE(spmi, smbchg_id);
@@ -8779,7 +9172,9 @@ static struct platform_driver smbchg_driver = {
 		.name		= "qpnp-smbcharger",
 		.owner		= THIS_MODULE,
 		.of_match_table	= smbchg_match_table,
+#if defined(CONFIG_FB)
 		.pm		= &smbchg_pm_ops,
+#endif
 	},
 	.probe		= smbchg_probe,
 	.remove		= smbchg_remove,
