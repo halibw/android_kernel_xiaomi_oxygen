@@ -283,7 +283,6 @@ struct msm_fb_data_type {
 
 	u32 dest;
 	struct fb_info *fbi;
-	int blank;
 
 	int idle_time;
 	u32 idle_state;
@@ -343,8 +342,6 @@ struct msm_fb_data_type {
 	struct task_struct *disp_thread;
 	atomic_t commits_pending;
 	atomic_t kickoff_pending;
-	atomic_t resume_pending;
-	wait_queue_head_t resume_wait_q;
 	wait_queue_head_t commit_wait_q;
 	wait_queue_head_t idle_wait_q;
 	wait_queue_head_t kickoff_wait_q;
