@@ -507,6 +507,7 @@ static const struct attribute_group attribute_group = {
 
 static void notification_work(struct work_struct *work)
 {
+	mdss_prim_panel_fb_unblank(FP_UNLOCK_REJECTION_TIMEOUT);
 	pr_debug("unblank\n");
 }
 
