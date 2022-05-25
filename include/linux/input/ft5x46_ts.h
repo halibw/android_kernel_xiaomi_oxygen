@@ -35,7 +35,6 @@
 #include <linux/interrupt.h>
 #include <linux/module.h>
 #include <linux/slab.h>
-#include <linux/wakelock.h>
 #include <linux/power_supply.h>
 #include <linux/input/mt.h>
 #include <linux/uaccess.h>
