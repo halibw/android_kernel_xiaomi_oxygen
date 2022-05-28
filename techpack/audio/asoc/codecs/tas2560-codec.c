@@ -311,6 +311,7 @@ static int tas2560_codec_probe(struct snd_soc_codec *codec)
 
 	dev_dbg(pTAS2560->dev, "%s\n", __func__);
 
+	snd_soc_dapm_ignore_suspend(dapm, "ASI1 Playback");
 	snd_soc_dapm_ignore_suspend(dapm, "OUT");
 	/*pTAS2560->codec = codec;*/
 
