@@ -1814,15 +1814,15 @@ static int smbchg_set_high_usb_chg_current(struct smbchg_chip *chip,
 
 		rc = smbchg_masked_write(chip, chip->usb_chgpth_base + CMD_IL,
 			USBIN_MODE_CHG_BIT | USB51_MODE_BIT | ICL_OVERRIDE_BIT,
-			USBIN_LIMITED_MODE | USB51_100MA | ICL_OVERRIDE_BIT);
+			USBIN_LIMITED_MODE | USB51_500MA | ICL_OVERRIDE_BIT);
 		if (rc < 0) {
 			pr_err("Couldn't set ICL_OVERRIDE rc=%d\n", rc);
 			return rc;
 		}
 
 		pr_smb(PR_STATUS,
-			"Forcing 100mA current limit\n");
-		chip->usb_max_current_ma = CURRENT_100_MA;
+			"Forcing 500mA current limit\n");
+		chip->usb_max_current_ma = CURRENT_500_MA;
 		return rc;
 	}
 
@@ -1831,19 +1831,19 @@ static int smbchg_set_high_usb_chg_current(struct smbchg_chip *chip,
 	if (i < 0) {
 		dev_err(chip->dev,
 			"Cannot find %dma current_table using %d\n",
-			current_ma, CURRENT_150_MA);
+			current_ma, CURRENT_500_MA);
 
 		rc = smbchg_sec_masked_write(chip,
 					chip->usb_chgpth_base + CHGPTH_CFG,
-					CFG_USB_2_3_SEL_BIT, CFG_USB_3);
+					CFG_USB_2_3_SEL_BIT, CFG_USB_2);
 		rc |= smbchg_masked_write(chip, chip->usb_chgpth_base + CMD_IL,
 					USBIN_MODE_CHG_BIT | USB51_MODE_BIT,
-					USBIN_LIMITED_MODE | USB51_100MA);
+					USBIN_LIMITED_MODE | USB51_500MA);
 		if (rc < 0)
 			dev_err(chip->dev, "Couldn't set %dmA rc=%d\n",
-					CURRENT_150_MA, rc);
+					CURRENT_500_MA, rc);
 		else
-			chip->usb_max_current_ma = 150;
+			chip->usb_max_current_ma = 500;
 		return rc;
 	}
 
@@ -1886,7 +1886,7 @@ static int smbchg_set_usb_current_max(struct smbchg_chip *chip,
 	}
 	pr_smb(PR_STATUS, "USB current_ma = %d\n", current_ma);
 
-	if (current_ma <= SUSPEND_CURRENT_MA) {
+	if (current_ma == SUSPEND_CURRENT_MA) {
 		/* suspend the usb if current <= 2mA */
 		rc = vote(chip->usb_suspend_votable, USB_EN_VOTER, true, 0);
 		chip->usb_max_current_ma = 0;
@@ -1913,18 +1913,18 @@ static int smbchg_set_usb_current_max(struct smbchg_chip *chip,
 			rc = smbchg_masked_write(chip,
 					chip->usb_chgpth_base + CMD_IL,
 					USBIN_MODE_CHG_BIT | USB51_MODE_BIT,
-					USBIN_LIMITED_MODE | USB51_100MA);
+					USBIN_LIMITED_MODE | USB51_500MA);
 			if (rc < 0) {
 				pr_err("Couldn't set CMD_IL rc = %d\n", rc);
 				goto out;
 			}
-			chip->usb_max_current_ma = 100;
+			chip->usb_max_current_ma = 500;
 		}
 		/* specific current values */
 		if (current_ma == CURRENT_150_MA) {
 			rc = smbchg_sec_masked_write(chip,
 					chip->usb_chgpth_base + CHGPTH_CFG,
-					CFG_USB_2_3_SEL_BIT, CFG_USB_3);
+					CFG_USB_2_3_SEL_BIT, CFG_USB_2);
 			if (rc < 0) {
 				pr_err("Couldn't set CHGPTH_CFG rc = %d\n", rc);
 				goto out;
@@ -1932,12 +1932,12 @@ static int smbchg_set_usb_current_max(struct smbchg_chip *chip,
 			rc = smbchg_masked_write(chip,
 					chip->usb_chgpth_base + CMD_IL,
 					USBIN_MODE_CHG_BIT | USB51_MODE_BIT,
-					USBIN_LIMITED_MODE | USB51_100MA);
+					USBIN_LIMITED_MODE | USB51_500MA);
 			if (rc < 0) {
 				pr_err("Couldn't set CMD_IL rc = %d\n", rc);
 				goto out;
 			}
-			chip->usb_max_current_ma = 150;
+			chip->usb_max_current_ma = 500;
 		}
 		if (current_ma == CURRENT_500_MA) {
 			rc = smbchg_sec_masked_write(chip,
@@ -4707,8 +4707,11 @@ static void determine_thermal_current(struct smbchg_chip *chip)
 }
 #endif
 
-#define DEFAULT_SDP_MA		100
+#define DEFAULT_SDP_MA		2
 #define DEFAULT_CDP_MA		1500
+#define TYPEC_STD_CURRENT_MA		500
+#define DEFAULT_MAIN_CHG_FCC_PERCENT		40
+#define HVDCP_MAIN_CHG_FCC_PERCENT		45
 static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 						enum power_supply_type type)
 {
@@ -4727,9 +4730,7 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 	 * modes, skip all BC 1.2 current if external typec is supported.
 	 * Note: for SDP supporting current based on USB notifications.
 	 */
-	if (chip->typec_psy && (type != POWER_SUPPLY_TYPE_USB))
-		current_limit_ma = chip->typec_current_ma;
-	else if (type == POWER_SUPPLY_TYPE_USB)
+	if (type == POWER_SUPPLY_TYPE_USB)
 		current_limit_ma = DEFAULT_SDP_MA;
 	else if (type == POWER_SUPPLY_TYPE_USB_CDP)
 		current_limit_ma = DEFAULT_CDP_MA;
@@ -4737,11 +4738,24 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 		current_limit_ma = smbchg_default_hvdcp_icl_ma;
 	else if (type == POWER_SUPPLY_TYPE_USB_HVDCP_3)
 		current_limit_ma = smbchg_default_hvdcp3_icl_ma;
+	/*
+	 * We should consider USB Type-C charging requirment, but hvdcp should
+	 * have higher priority than Type-C in our product.
+	 */
+	else if (chip->typec_psy && (type != POWER_SUPPLY_TYPE_USB)
+			&& (chip->typec_current_ma > TYPEC_STD_CURRENT_MA))
+		current_limit_ma = chip->typec_current_ma;
 	else
 		current_limit_ma = smbchg_default_dcp_icl_ma;
 
 	pr_smb(PR_STATUS, "Type %d: setting mA = %d\n",
 		type, current_limit_ma);
+
+	if (type == POWER_SUPPLY_TYPE_USB_HVDCP)
+		smbchg_main_chg_fcc_percent = HVDCP_MAIN_CHG_FCC_PERCENT;
+	else
+		smbchg_main_chg_fcc_percent = DEFAULT_MAIN_CHG_FCC_PERCENT;
+
 	rc = vote(chip->usb_icl_votable, PSY_ICL_VOTER, true,
 				current_limit_ma);
 	if (rc < 0) {
@@ -6856,7 +6870,7 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 	if ((reg & USBIN_UV_BIT) && (reg & USBIN_SRC_DET_BIT) &&
 		!chip->hvdcp_3_det_ignore_uv) {
 		pr_smb(PR_STATUS, "Very weak charger detected\n");
-		chip->very_weak_charger = true;
+		// chip->very_weak_charger = true;
 		rc = smbchg_read(chip, &reg,
 				chip->usb_chgpth_base + ICL_STS_2_REG, 1);
 		if (rc) {
@@ -6870,21 +6884,12 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 			 * SDP or a grossly out of spec charger. Do not
 			 * draw any current from it.
 			 */
-			rc = vote(chip->usb_suspend_votable,
-					WEAK_CHARGER_EN_VOTER, true, 0);
+			pr_warn("SDP or a grossly out of spec charger\n");
+		} else if ((chip->aicl_deglitch_short || chip->force_aicl_rerun)
+			&& aicl_level == chip->tables.usb_ilim_ma_table[0]) {
+			rc = smbchg_set_high_usb_chg_current(chip, aicl_level);
 			if (rc < 0)
-				pr_err("could not disable charger: %d", rc);
-		} else if (aicl_level == chip->tables.usb_ilim_ma_table[0]) {
-			/*
-			 * we are in a situation where the adapter is not able
-			 * to supply even 300mA. Disable hw aicl reruns else it
-			 * is only a matter of time when we get back here again
-			 */
-			rc = vote(chip->hw_aicl_rerun_disable_votable,
-				WEAK_CHARGER_HW_AICL_VOTER, true, 0);
-			if (rc < 0)
-				pr_err("Couldn't disable hw aicl rerun rc=%d\n",
-						rc);
+				pr_err("Couldn't set %dmA rc = %d\n", aicl_level, rc);
 		}
 		pr_smb(PR_MISC, "setting usb psy health UNSPEC_FAILURE\n");
 		chip->usb_health = POWER_SUPPLY_HEALTH_UNSPEC_FAILURE;
