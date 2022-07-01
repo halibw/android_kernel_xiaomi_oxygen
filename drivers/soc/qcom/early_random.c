@@ -67,8 +67,6 @@ void __init init_random_pool(void)
 						RANDOM_BUFFER_SIZE);
 		bytes_received = (bytes_received <= RANDOM_BUFFER_SIZE) ?
 					bytes_received : RANDOM_BUFFER_SIZE;
-		add_hwgenerator_randomness(random_buffer, bytes_received,
-					   bytes_received << 3);
 	}
 }
 
