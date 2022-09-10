@@ -387,9 +387,11 @@ static ssize_t device_prepare_set(struct device *dev,
 
 	if (!strncmp(buf, "enable", strlen("enable"))) {
 		rc = device_prepare(fpc1020, true);
+		update_hardware_info(TYPE_FP, 1);
 
 	} else if (!strncmp(buf, "disable", strlen("disable"))) {
 		rc = device_prepare(fpc1020, false);
+		update_hardware_info(TYPE_FP, 0);
 	} else {
 		return -EINVAL;
 	}

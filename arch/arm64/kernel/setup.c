@@ -303,6 +303,7 @@ void __init early_init_dt_setup_smeminfo_arch(unsigned long smem_info)
 		ddr_info = 0x00;
 		break;
 	}
+	update_hardware_info(TYPE_DDR, ddr_info);
 	pr_info("Smem info=0x%x\n", ddr_info);
 }
 #endif

@@ -2845,10 +2845,12 @@ struct ft5x46_data *ft5x46_probe(struct device *dev,
 	} else {
 		dev_info(dev, "ft5x46 chip id = %02x\n", ft5x46->chip_id);
 	}
+	update_hardware_info(TYPE_TOUCH, 3);
 	error = ft5x46_get_lockdown_info(ft5x46);
 	if (error)
 		dev_err(dev, "Failed to get lockdown info\n");
 	else
+		update_hardware_info(TYPE_TP_MAKER, ft5x46->lockdown_info[0] - 0x30);
 	error = ft5x46_load_firmware(ft5x46, pdata->firmware, NULL);
 	if (error) {
 		dev_err(dev, "fail to load firmware\n");
