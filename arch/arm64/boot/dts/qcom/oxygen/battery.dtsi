@@ -5,7 +5,6 @@
 		qcom,batt-id-range-pct = <15>;
 		#include "batterydata/batterydata-d4-sunwoda-5300mAh.dtsi"
 		#include "batterydata/batterydata-d4-coslight-5300mAh.dtsi"
-		#include "../batterydata-itech-3000mah.dtsi"
 	};
 };
 
