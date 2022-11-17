@@ -1025,6 +1025,7 @@ invalid_input:
 static inline unsigned int VENUS_BUFFER_SIZE(
 	int color_fmt, int width, int height)
 {
+	const unsigned int extra_size = VENUS_EXTRADATA_SIZE(width, height);
 	unsigned int uv_alignment = 0, size = 0;
 	unsigned int w_alignment = 512;
 	unsigned int y_plane, uv_plane, y_stride,
@@ -1053,7 +1054,8 @@ static inline unsigned int VENUS_BUFFER_SIZE(
 		uv_alignment = 4096;
 		y_plane = y_stride * y_sclines;
 		uv_plane = uv_stride * uv_sclines + uv_alignment;
-		size = y_plane + uv_plane;
+		size = y_plane + uv_plane +
+				MSM_MEDIA_MAX(extra_size, 8 * y_stride);
 		size = MSM_MEDIA_ALIGN(size, 4096);
 
 		/* Additional size to cover last row of non-aligned frame */
@@ -1068,7 +1070,8 @@ static inline unsigned int VENUS_BUFFER_SIZE(
 		uv_alignment = 4096;
 		y_plane = y_stride * y_sclines;
 		uv_plane = uv_stride * uv_sclines + uv_alignment;
-		size = y_plane + uv_plane;
+		size = y_plane + uv_plane +
+				MSM_MEDIA_MAX(extra_size, 8 * y_stride);
 		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_NV12_MVTB:
@@ -1076,10 +1079,37 @@ static inline unsigned int VENUS_BUFFER_SIZE(
 		y_plane = y_stride * y_sclines;
 		uv_plane = uv_stride * uv_sclines + uv_alignment;
 		size = y_plane + uv_plane;
-		size = 2 * size;
+		size = 2 * size + extra_size;
 		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_NV12_UBWC:
+		y_sclines = VENUS_Y_SCANLINES(color_fmt, (height+1)>>1);
+		y_ubwc_plane = MSM_MEDIA_ALIGN(y_stride * y_sclines, 4096);
+		uv_sclines = VENUS_UV_SCANLINES(color_fmt, (height+1)>>1);
+		uv_ubwc_plane = MSM_MEDIA_ALIGN(uv_stride * uv_sclines, 4096);
+		y_meta_stride = VENUS_Y_META_STRIDE(color_fmt, width);
+		y_meta_scanlines =
+			VENUS_Y_META_SCANLINES(color_fmt, (height+1)>>1);
+		y_meta_plane = MSM_MEDIA_ALIGN(
+			y_meta_stride * y_meta_scanlines, 4096);
+		uv_meta_stride = VENUS_UV_META_STRIDE(color_fmt, width);
+		uv_meta_scanlines =
+			VENUS_UV_META_SCANLINES(color_fmt, (height+1)>>1);
+		uv_meta_plane = MSM_MEDIA_ALIGN(uv_meta_stride *
+			uv_meta_scanlines, 4096);
+
+		size = (y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
+			uv_meta_plane)*2 +
+			MSM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
+		size = MSM_MEDIA_ALIGN(size, 4096);
+
+		/* Additional size to cover last row of non-aligned frame */
+		if (width >= 2400 && height >= 2400) {
+			size += MSM_MEDIA_ALIGN(width, w_alignment) *
+					w_alignment;
+			size = MSM_MEDIA_ALIGN(size, 4096);
+		}
+		break;
 	case COLOR_FMT_NV12_BPP10_UBWC:
 		y_ubwc_plane = MSM_MEDIA_ALIGN(y_stride * y_sclines, 4096);
 		uv_ubwc_plane = MSM_MEDIA_ALIGN(uv_stride * uv_sclines, 4096);
@@ -1093,7 +1123,8 @@ static inline unsigned int VENUS_BUFFER_SIZE(
 					uv_meta_scanlines, 4096);
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-			uv_meta_plane;
+			uv_meta_plane +
+			MSM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
 		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_P010_UBWC:
@@ -1109,7 +1140,8 @@ static inline unsigned int VENUS_BUFFER_SIZE(
 					uv_meta_scanlines, 4096);
 
 		size = y_ubwc_plane + uv_ubwc_plane + y_meta_plane +
-			uv_meta_plane;
+			uv_meta_plane +
+			MSM_MEDIA_MAX(extra_size + 8192, 48 * y_stride);
 		size = MSM_MEDIA_ALIGN(size, 4096);
 		break;
 	case COLOR_FMT_RGBA8888:
