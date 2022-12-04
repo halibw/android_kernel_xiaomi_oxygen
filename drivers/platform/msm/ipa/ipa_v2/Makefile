@@ -5,3 +5,5 @@ ipat-y := ipa.o ipa_debugfs.o ipa_hdr.o ipa_flt.o ipa_rt.o ipa_dp.o ipa_client.o
 	ipa_wdi3_i.o
 
 obj-$(CONFIG_RMNET_IPA) += rmnet_ipa.o ipa_qmi_service_v01.o ipa_qmi_service.o rmnet_ipa_fd_ioctl.o
+
+subdir-ccflags-y := $(call cc-disable-warning, enum-conversion)
