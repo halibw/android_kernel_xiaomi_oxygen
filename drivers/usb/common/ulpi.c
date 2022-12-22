@@ -166,7 +166,7 @@ static int ulpi_register(struct device *dev, struct ulpi *ulpi)
 
 	ret = ulpi_read(ulpi, ULPI_SCRATCH);
 	if (ret < 0)
-		return ret;
+		goto err;
 
 	if (ret != 0xaa)
 		return -ENODEV;
