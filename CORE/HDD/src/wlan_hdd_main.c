@@ -8860,7 +8860,7 @@ VOS_STATUS hdd_release_firmware(char *pFileName,v_VOID_t *pCtx)
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
-char* hdd_get_nv_bin()
+char* hdd_get_nv_bin(void)
 {
 	if (wcnss_get_nv_name(wlan_nv_bin)) {
 		hddLog(VOS_TRACE_LEVEL_ERROR,
@@ -9104,7 +9104,7 @@ done:
    return ret;
 }
 
-static int hdd_open_cesium_nl_sock()
+static int hdd_open_cesium_nl_sock(void)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0))
    struct netlink_kernel_cfg cfg = {
@@ -9135,7 +9135,7 @@ static int hdd_open_cesium_nl_sock()
    return ret;
 }
 
-static void hdd_close_cesium_nl_sock()
+static void hdd_close_cesium_nl_sock(void)
 {
    if (NULL != cesium_nl_srv_sock)
    {
