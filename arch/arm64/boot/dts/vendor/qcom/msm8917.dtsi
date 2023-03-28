@@ -555,7 +555,7 @@
 	};
 
 	gcc: qcom,gcc@1800000 {
-		compatible = "qcom,gcc-qm215", "syscon";
+		compatible = "qcom,gcc-msm8917", "syscon";
 		reg = <0x1800000 0x80000>,
 			 <0x00a6018 0x00004>;
 		reg-names = "cc_base", "gpu-bin";
