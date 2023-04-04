@@ -5851,7 +5851,7 @@ static tANI_BOOLEAN csrScanProcessScanResults( tpAniSirGlobal pMac, tSmeCmd *pCo
         if (eHAL_STATUS_SUCCESS != status)
             smsLog(pMac, LOGE,
                    FL( "failed to update the supported channel list"));
-            pMac->scan.defer_update_channel_list = false;
+        pMac->scan.defer_update_channel_list = false;
     }
 
 #ifdef WLAN_AP_STA_CONCURRENCY
@@ -7899,7 +7899,7 @@ tANI_BOOLEAN csrScanRemoveFreshScanCommand(tpAniSirGlobal pMac, tANI_U8 sessionI
 
 void csrReleaseScanCommand(tpAniSirGlobal pMac, tSmeCmd *pCommand, eCsrScanStatus scanStatus)
 {
-    eCsrScanReason reason = pCommand->u.scanCmd.reason;
+    eCsrScanReason __maybe_unused reason = pCommand->u.scanCmd.reason;
     tANI_BOOLEAN status;
 
     if (!pMac->fScanOffload)

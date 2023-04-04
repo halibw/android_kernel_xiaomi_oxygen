@@ -6426,6 +6426,7 @@ static int __wlan_hdd_cfg80211_wifi_logger_start(struct wiphy *wiphy,
                         const void *data,
                                 int data_len)
 {
+#ifdef WLAN_LOGGING_SOCK_SVC_ENABLE
     eHalStatus status;
     hdd_context_t *hdd_ctx = wiphy_priv(wiphy);
     struct nlattr *tb[QCA_WLAN_VENDOR_ATTR_WIFI_LOGGER_START_MAX + 1];
@@ -6475,12 +6476,15 @@ static int __wlan_hdd_cfg80211_wifi_logger_start(struct wiphy *wiphy,
         !vos_isPktStatsEnabled()))
 
     {
+#endif
        hddLog(LOGE, FL("per pkt stats not enabled"));
        return -EINVAL;
+#ifdef WLAN_LOGGING_SOCK_SVC_ENABLE
     }
 
     vos_set_ring_log_level(start_log.ringId, start_log.verboseLevel);
     return 0;
+#endif
 }
 
 /**
@@ -14527,78 +14531,6 @@ static int wlan_hdd_cfg80211_set_default_key( struct wiphy *wiphy,
     return ret;
 }
 
-/*
- * FUNCTION: wlan_hdd_cfg80211_inform_bss
- * This function is used to inform the BSS details to nl80211 interface.
- */
-static struct cfg80211_bss* wlan_hdd_cfg80211_inform_bss(
-                    hdd_adapter_t *pAdapter, tCsrRoamConnectedProfile *roamProfile)
-{
-    struct net_device *dev = pAdapter->dev;
-    struct wireless_dev *wdev = dev->ieee80211_ptr;
-    struct wiphy *wiphy = wdev->wiphy;
-    tSirBssDescription *pBssDesc = roamProfile->pBssDesc;
-    int chan_no;
-    int ie_length;
-    const char *ie;
-    unsigned int freq;
-    struct ieee80211_channel *chan;
-    int rssi = 0;
-    struct cfg80211_bss *bss = NULL;
-
-    if( NULL == pBssDesc )
-    {
-        hddLog(VOS_TRACE_LEVEL_FATAL, "%s: pBssDesc is NULL", __func__);
-        return bss;
-    }
-
-    chan_no = pBssDesc->channelId;
-    ie_length = GET_IE_LEN_IN_BSS_DESC( pBssDesc->length );
-    ie =  ((ie_length != 0) ? (const char *)&pBssDesc->ieFields: NULL);
-
-    if( NULL == ie )
-    {
-       hddLog(VOS_TRACE_LEVEL_FATAL, "%s: IE of BSS descriptor is NULL", __func__);
-       return bss;
-    }
-
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,38))
-    if (chan_no <= ARRAY_SIZE(hdd_channels_2_4_GHZ))
-    {
-        freq = ieee80211_channel_to_frequency(chan_no, HDD_NL80211_BAND_2GHZ);
-    }
-    else
-    {
-        freq = ieee80211_channel_to_frequency(chan_no, HDD_NL80211_BAND_5GHZ);
-    }
-#else
-    freq = ieee80211_channel_to_frequency(chan_no);
-#endif
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
-    chan = ieee80211_get_channel(wiphy, freq);
-#else
-    chan = __ieee80211_get_channel(wiphy, freq);
-#endif
-
-    if (!chan) {
-       hddLog(VOS_TRACE_LEVEL_ERROR, "%s chan pointer is NULL", __func__);
-       return NULL;
-    }
-
-    rssi = (VOS_MIN ((pBssDesc->rssi + pBssDesc->sinr), 0))*100;
-
-    return cfg80211_inform_bss(wiphy, chan,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,18,0))
-                CFG80211_BSS_FTYPE_UNKNOWN,
-#endif
-                pBssDesc->bssId,
-                le64_to_cpu(*(__le64 *)pBssDesc->timeStamp),
-                pBssDesc->capabilityInfo,
-                pBssDesc->beaconInterval, ie, ie_length,
-                rssi, GFP_KERNEL );
-}
-
 void wlan_hdd_cfg80211_unlink_bss(hdd_adapter_t *pAdapter, tSirMacAddr bssid)
 {
     struct net_device *dev = pAdapter->dev;
@@ -19647,12 +19579,14 @@ static int __wlan_hdd_cfg80211_del_station(struct wiphy *wiphy,
                  FL("psapCtx is NULL"));
             return -ENOENT;
         }
+#ifdef SAP_AUTH_OFFLOAD
         if (pHddCtx->cfg_ini->enable_sap_auth_offload)
         {
             VOS_TRACE(VOS_MODULE_ID_SAP, VOS_TRACE_LEVEL_INFO,
               "Change reason code to eSIR_MAC_DISASSOC_LEAVING_BSS_REASON in sap auth offload");
             pDelStaParams->reason_code = eSIR_MAC_DISASSOC_LEAVING_BSS_REASON;
         }
+#endif
         if (vos_is_macaddr_broadcast((v_MACADDR_t *)pDelStaParams->peerMacAddr))
         {
             v_U16_t i;
@@ -20412,8 +20346,10 @@ static eHalStatus wlan_hdd_is_pno_allowed(hdd_adapter_t *pAdapter)
           && (eConnectionState_NotConnected != pStaCtx->conn_info.connState))
           || (WLAN_HDD_P2P_CLIENT == pTempAdapter->device_mode)
           || (WLAN_HDD_P2P_GO == pTempAdapter->device_mode)
+#ifdef SAP_AUTH_OFFLOAD
           || (WLAN_HDD_SOFTAP == pTempAdapter->device_mode &&
                  !pHddCtx->cfg_ini->enable_sap_auth_offload)
+#endif
           || (WLAN_HDD_TM_LEVEL_4 == pHddCtx->tmInfo.currentTmLevel)
           )
         {
