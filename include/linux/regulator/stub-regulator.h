@@ -40,7 +40,7 @@ struct stub_regulator_pdata {
  * registration ordering must be controlled precisely.
  */
 
-int __init regulator_stub_init(void);
+int regulator_stub_init(void);
 
 #else
 

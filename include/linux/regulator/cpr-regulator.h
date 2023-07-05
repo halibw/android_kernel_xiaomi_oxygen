@@ -18,7 +18,7 @@
 
 #ifdef CONFIG_REGULATOR_CPR
 
-int __init cpr_regulator_init(void);
+int cpr_regulator_init(void);
 
 #else
 
