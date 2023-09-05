@@ -1088,6 +1088,20 @@ config REGULATOR_CPR3
 	  or decrease requests all the way to the PMIC without software
 	  involvement.
 
+config REGULATOR_CPR4_APSS
+	bool "CPR4 regulator for APSS"
+	depends on OF
+	select REGULATOR_CPR3
+	help
+	  This driver supports Qualcomm Technologies, Inc. APSS application
+	  processor specific features including memory array power mux (APM)
+	  switching, one CPR4 thread which monitor the two APSS clusters that
+	  are both powered by a shared supply, hardware closed-loop auto
+	  voltage stepping, voltage adjustments based on online core count,
+	  voltage adjustments based on temperature readings, and voltage
+	  adjustments for performance boost mode. This driver reads both initial
+	  voltage and CPR target quotient values out of hardware fuses.
+
 config REGULATOR_CPR4_MMSS_LDO
 	bool "RBCPR3 regulator for MMSS LDO"
 	depends on OF
@@ -1109,6 +1123,24 @@ config REGULATOR_CPRH_KBSS
 	  CPRh controllers which monitor the two KBSS clusters each powered by
 	  independent voltage supplies. This driver reads both initial voltage
 	  and CPR target quotient values out of hardware fuses.
+
+config REGULATOR_KRYO
+	bool "Kryo regulator driver"
+	depends on OF
+	help
+	  Some MSM designs have CPUs that can be directly powered from a common
+	  voltage rail via a Block Head Switch (BHS) or an LDO whose output
+	  voltage can be configured for use when certain power constraints are
+	  met.  Say yes to support management of LDO and BHS modes for the
+	  clusters in the CPU subsystem.
+
+config REGULATOR_MEM_ACC
+	tristate "QTI Memory accelerator regulator driver"
+	help
+	  Say y here to enable the memory accelerator driver for Qualcomm
+	  Technologies, Inc. (QTI) chips. The accelerator controls delays
+	  applied for memory accesses.  This driver configures the power-mode
+	  (corner) for the memory accelerator.
 
 config REGULATOR_REFGEN
 	tristate "Qualcomm Technologies, Inc. REFGEN regulator driver"
