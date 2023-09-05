@@ -612,6 +612,12 @@ static const struct of_device_id mpm_gic_chip_data_table[] = {
 };
 MODULE_DEVICE_TABLE(of, mpm_gic_chip_data_table);
 
+static const struct of_device_id mpm_gpio_chip_data_table[] = {
+	{}
+};
+
+MODULE_DEVICE_TABLE(of, mpm_gpio_chip_data_table);
+
 static int __init mpm_gic_chip_init(struct device_node *node,
 					struct device_node *parent)
 {
