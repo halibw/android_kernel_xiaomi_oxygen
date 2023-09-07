@@ -1,0 +1,139 @@
+/* msm8953-mtp.dtsi */
+&soc {
+	gpio_keys {
+		hall_key {
+			label = "hall_key";
+			gpios = <&tlmm 140 0x01>;
+			linux,input-type = <5>;
+			linux,code = <0>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+	};
+};
+&pm8953_typec {
+	/delete-property/ qcom,ssmux-gpio;
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+};
+
+/* msm8953-oxygen.dtsi */
+&usb3 {
+	qcom,detect-dpdm-floating;
+};
+/* NOTE: Needs adaption */
+&pm8953_gpios {
+	/* GPIO 2 (NFC_CLK_REQ) */
+	gpio@c100 {
+		/delete-property/ qcom,output-type;
+		/delete-property/ qcom,pull;
+		/delete-property/ qcom,out-strength;
+	};
+
+	/* GPIO 8 (USB_HS_ID) */
+	gpio@c700 {
+		/* pm8953 gpio_8 default voltage source is vin3, should change to vin1 */
+		qcom,vin-sel = <1>;
+		status = "okay";
+	};
+};
+&qusb_phy {
+		qcom,qusb-phy-init-seq = <0xF8 0x80
+					0x23 0x84
+					0x83 0x88
+					0xC0 0x8C
+					0x14 0x9C
+					0x30 0x08
+					0x79 0x0C
+					0x21 0x10
+					0x00 0x90
+					0x9F 0x1C
+					0x00 0x18>;
+};
+&spi_8 {
+	status = "ok";
+	irled@0 {
+		compatible = "ir-spi";
+		reg = <0x1>;
+		status = "ok";
+		spi-max-frequency = <1000000>;
+	};
+};
+&i2c_2 { /* BLSP2 QUP1 (TAS2560) */
+	aw2013@45 {
+		compatible = "awinic,aw2013";
+		reg = <0x45>;
+		vdd-supply = <&pm8953_l10>;
+		vcc-supply = <&pm8953_l5>;
+
+		aw2013,white {
+			aw2013,name = "white";
+			aw2013,id = <0>;
+			aw2013,max-brightness = <255>;
+			aw2013,max-current = <1>;
+			aw2013,rise-time-ms = <3>;
+			aw2013,hold-time-ms = <2>;
+			aw2013,fall-time-ms = <3>;
+			aw2013,off-time-ms = <2>;
+		};
+		aw2013,button-backlight {
+			aw2013,name = "button-backlight";
+			aw2013,id = <1>;
+			aw2013,max-brightness = <255>;
+			aw2013,max-current = <1>;
+			aw2013,rise-time-ms = <3>;
+			aw2013,hold-time-ms = <2>;
+			aw2013,fall-time-ms = <3>;
+			aw2013,off-time-ms = <2>;
+		};
+	};
+};
+&soc {
+	gpio13 {
+		pinctrl-names = "tlmm_gpio13_active","tlmm_gpio13_suspend";
+		pinctrl-0 = <&gpio13_active>;
+		pinctrl-1 = <&gpio13_suspend>;
+		compatible = "gpio13";
+		gpios = <&tlmm 13 0x01>;
+		debounce-interval = <15>;
+	};
+};
+
+/* msm-pmi8950.dtsi */
+&spmi_bus {
+        qcom,pmi8950@2 {
+		qcom,leds@a100 {
+			qcom,led_mpp_2 {
+				label = "mpp";
+				linux,name = "button-backlight";
+				linux,default-trigger = "none";
+				qcom,default-state = "off";
+				qcom,max-current = <40>;
+				qcom,current-setting = <5>;
+				qcom,id = <6>;
+				qcom,source-sel = <1>;
+				qcom,mode-ctrl = <0x60>;
+				qcom,mode = "manual";
+			};
+		};
+	};
+};
+
+/* Haptics */
+&pmi_haptic{
+	qcom,actuator-type = "lra";
+	qcom,lra-auto-resonance-mode = "qwd";
+	qcom,lra-resonance-sig-shape = "sine";
+//	qcom,lra-high-z="opt1";
+//	qcom,lra-res-cal-period = <4>;
+//	qcom,misc-trim-error-rc19p2-clk-reg-present;
+//	qcom,brake-pattern = [03 02 01 00];
+	qcom,play-rate-us = <5100>;
+	qcom,vmax-mv = <2088>;
+	wf_0 { qcom,wf-vmax-mv = <2088>; };
+	wf_1 { qcom,wf-vmax-mv = <2088>; };
+	wf_2 { qcom,wf-vmax-mv = <2088>; };
+	wf_3 { qcom,wf-vmax-mv = <2088>; };
+	wf_4 { qcom,wf-vmax-mv = <2088>; };
+	wf_5 { qcom,wf-vmax-mv = <2088>; };
+};
