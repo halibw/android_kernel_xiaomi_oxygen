@@ -1,11 +1,22 @@
-#include "qm215-qrd.dtsi"
-#include <dt-bindings/iio/qcom,spmi-vadc.h>
+/* Copyright (c) 2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
-&pm8916_chg {
+#include "qm215-qrd.dtsi"
+
+&pm8916_chg{
 	qcom,use-external-charger;
 };
 
-&pm8916_bms {
+&pm8916_bms{
 	qcom,disable-bms;
 };
 
@@ -17,7 +28,6 @@
 					pins = "gpio13";
 					function ="gpio";
 				};
-
 				config {
 					pins = "gpio13";
 					bias-pull-up;           /* PULL UP*/
@@ -72,8 +82,6 @@
 		qcom,cool-bat-mv = <4200>;
 		qcom,warm-bat-ma = <1000>;
 		qcom,cool-bat-ma = <1000>;
-		io-channels = <&pm8916_vadc VADC_LR_MUX2_BAT_ID>;
-		io-channel-names = "batt_id";
 		status= "okay";
 	};
 };

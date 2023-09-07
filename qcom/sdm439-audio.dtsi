@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 &soc {
 	int_codec: sound {
 		qcom,model = "sdm439-snd-card-mtp";
@@ -16,8 +29,6 @@
 	clock_audio_native: audio_ext_clk_native {
 		status = "disabled";
 		compatible = "qcom,audio-ref-clk";
-		qcom,use-pinctrl = <1>;
-		qcom,codec-ext-clk-src = <2>;
 		#clock-cells = <1>;
 		qcom,codec-mclk-clk-freq = <11289600>;
 		qcom,audio-ref-clk-gpio = <&tlmm 66 0>;
@@ -64,7 +75,7 @@
 
 &pm8953_gpios {
 	tasha_mclk {
-		tasha_mclk_default: tasha_mclk_default {
+		tasha_mclk_default: tasha_mclk_default{
 			pins = "gpio1";
 			function = "func1";
 			qcom,drive-strength = <2>;
@@ -76,7 +87,7 @@
 };
 
 &pm8953_1 {
-	pmic_analog_codec: anlg-cdc@f000 {
+	pmic_analog_codec: analog-codec@f000 {
 		status = "okay";
 		compatible = "qcom,pmic-analog-codec";
 		reg = <0xf000 0x200>;

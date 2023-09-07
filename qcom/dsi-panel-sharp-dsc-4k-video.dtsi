@@ -1,11 +1,19 @@
+/* Copyright (c) 2016-2017, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 &mdss_mdp {
 	dsi_sharp_4k_dsc_video: qcom,mdss_dsi_sharp_4k_dsc_video {
 		qcom,mdss-dsi-panel-name = "Sharp 4k video mode dsc dsi panel";
 		qcom,mdss-dsi-panel-type = "dsi_video_mode";
-
-		qcom,dsi-ctrl-num = <0 1>;
-		qcom,dsi-phy-num = <0 1>;
-
 		qcom,mdss-dsi-virtual-channel-id = <0>;
 		qcom,mdss-dsi-stream = <0>;
 		qcom,mdss-dsi-bpp = <24>;
@@ -19,7 +27,7 @@
 		qcom,mdss-dsi-lane-3-state;
 		qcom,mdss-dsi-dma-trigger = "trigger_sw";
 		qcom,mdss-dsi-mdp-trigger = "none";
-		qcom,mdss-dsi-reset-sequence = <1 100>, <0 100>, <1 100>;
+		qcom,mdss-dsi-reset-sequence = <1 200>, <0 200>, <1 200>;
 		qcom,mdss-pan-physical-width-dimension = <71>;
 		qcom,mdss-pan-physical-height-dimension = <129>;
 		qcom,mdss-dsi-tx-eot-append;
@@ -32,7 +40,7 @@
 		qcom,mdss-dsi-panel-blackness-level = <3230>;
 
 		qcom,mdss-dsi-display-timings {
-			timing@0 {
+			timing@0{
 				qcom,mdss-dsi-panel-width = <1080>;
 				qcom,mdss-dsi-panel-height = <3840>;
 				qcom,mdss-dsi-h-front-porch = <30>;

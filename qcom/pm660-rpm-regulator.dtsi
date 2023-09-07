@@ -1,10 +1,22 @@
+/* Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 &rpm_bus {
 	rpm-regulator-smpa1 {
 		compatible = "qcom,rpm-smd-regulator-resource";
 		qcom,resource-name = "smpa";
 		qcom,resource-id = <1>;
 		qcom,regulator-type = <1>;
-		qcom,hpm-min-load = <100000>;
+		qcom,hpm-min-load = <400000>;
 		status = "disabled";
 
 		regulator-s1 {
@@ -20,7 +32,7 @@
 		qcom,resource-name = "smpa";
 		qcom,resource-id = <2>;
 		qcom,regulator-type = <1>;
-		qcom,hpm-min-load = <100000>;
+		qcom,hpm-min-load = <400000>;
 		status = "disabled";
 
 		regulator-s2 {
@@ -84,7 +96,7 @@
 		qcom,resource-name = "smpa";
 		qcom,resource-id = <6>;
 		qcom,regulator-type = <1>;
-		qcom,hpm-min-load = <100000>;
+		qcom,hpm-min-load = <400000>;
 		status = "disabled";
 
 		regulator-s6 {
@@ -100,8 +112,7 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <1>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
-		qcom,hpm-min-load = <10000>;
+		qcom,hpm-min-load = <30000>;
 		status = "disabled";
 
 		regulator-l1 {
@@ -117,8 +128,7 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <2>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
-		qcom,hpm-min-load = <10000>;
+		qcom,hpm-min-load = <30000>;
 		status = "disabled";
 
 		regulator-l2 {
@@ -134,8 +144,7 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <3>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
-		qcom,hpm-min-load = <10000>;
+		qcom,hpm-min-load = <30000>;
 		status = "disabled";
 
 		regulator-l3 {
@@ -151,8 +160,7 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <5>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
-		qcom,hpm-min-load = <10000>;
+		qcom,hpm-min-load = <30000>;
 		status = "disabled";
 
 		regulator-l5 {
@@ -168,8 +176,7 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <6>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
-		qcom,hpm-min-load = <10000>;
+		qcom,hpm-min-load = <30000>;
 		status = "disabled";
 
 		regulator-l6 {
@@ -185,8 +192,7 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <7>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
-		qcom,hpm-min-load = <10000>;
+		qcom,hpm-min-load = <30000>;
 		status = "disabled";
 
 		regulator-l7 {
@@ -202,7 +208,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <8>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -219,7 +224,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <9>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -236,7 +240,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <10>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -253,7 +256,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <11>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -270,7 +272,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <12>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -287,7 +288,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <13>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -304,7 +304,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <14>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -321,7 +320,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <15>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -338,7 +336,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <16>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -355,7 +352,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <17>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -372,7 +368,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <18>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 
@@ -389,7 +384,6 @@
 		qcom,resource-name = "ldoa";
 		qcom,resource-id = <19>;
 		qcom,regulator-type = <0>;
-		qcom,regulator-hw-type = "pmic4-ldo";
 		qcom,hpm-min-load = <10000>;
 		status = "disabled";
 

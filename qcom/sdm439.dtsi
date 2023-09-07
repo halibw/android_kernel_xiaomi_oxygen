@@ -1,8 +1,21 @@
+/*
+ * Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "msm8937.dtsi"
 #include "sdm439-pm8953.dtsi"
 #include "sdm439-pmi632.dtsi"
 #include "sdm439-audio.dtsi"
-#include <dt-bindings/clock/mdss-12nm-pll-clk.h>
+
 / {
 	model = "Qualcomm Technologies, Inc. SDM439";
 	compatible = "qcom,sdm439";
@@ -14,21 +27,17 @@
 		qcom,csi-vdd-voltage = <800000>;
 		qcom,mipi-csi-vdd-supply = <&pm8953_l23>;
 	};
-
 	qcom,csid@1b30400 {
 		qcom,csi-vdd-voltage = <800000>;
 		qcom,mipi-csi-vdd-supply = <&pm8953_l23>;
 	};
-
 	qcom,csid@1b30800 {
 		qcom,csi-vdd-voltage = <800000>;
 		qcom,mipi-csi-vdd-supply = <&pm8953_l23>;
 	};
-
 	qcom,csiphy@1b34000 {
 		compatible = "qcom,csiphy-v10.00", "qcom,csiphy";
 	};
-
 	qcom,csiphy@1b35000 {
 		compatible = "qcom,csiphy-v10.00", "qcom,csiphy";
 	};
@@ -36,11 +45,13 @@
 	/delete-node/ qcom,msm-cpufreq;
 	msm_cpufreq: qcom,msm-cpufreq {
 		compatible = "qcom,msm-cpufreq";
-
-		clocks = <&apsscc APCS_MUX_CCI_CLK>,
-			<&apsscc APCS_MUX_C1_CLK>,
-			<&apsscc APCS_MUX_C0_CLK>;
-		clock-names = "l2_clk", "cpu0_clk", "cpu4_clk";
+		clock-names =
+			"l2_clk",
+			"cpu0_clk",
+			"cpu4_clk";
+		clocks = <&clock_cpu clk_cci_clk>,
+			 <&clock_cpu clk_a53_bc_clk>,
+			 <&clock_cpu clk_a53_lc_clk>;
 
 		qcom,governor-per-policy;
 
@@ -61,58 +72,52 @@
 			 < 1459200 >;
 	};
 
-	/delete-node/ ddr-bw-opp-table;
-	 ddr_bw_opp_table: ddr-bw-opp-table {
-		compatible = "operating-points-v2";
-		BW_OPP_ENTRY( 101, 8); /*  769 MB/s */
-		BW_OPP_ENTRY( 211, 8); /* 1611 MB/s */
-		BW_OPP_ENTRY( 278, 8); /* 2124 MB/s */
-		BW_OPP_ENTRY( 384, 8); /* 2929 MB/s */
-		BW_OPP_ENTRY( 422, 8); /* 3221 MB/s */
-		BW_OPP_ENTRY( 557, 8); /* 4248 MB/s */
-		BW_OPP_ENTRY( 662, 8); /* 5053 MB/s */
-		BW_OPP_ENTRY( 749, 8); /* 5712 MB/s */
-		BW_OPP_ENTRY( 797, 8); /* 6079 MB/s */
-		BW_OPP_ENTRY( 845, 8); /* 6445 MB/s */
-		BW_OPP_ENTRY( 931, 8); /* 7104 MB/s */
+	/delete-node/ qcom,cpubw;
+	cpubw: qcom,cpubw {
+		compatible = "qcom,devbw";
+		governor = "cpufreq";
+		qcom,src-dst-ports = <1 512>;
+		qcom,active-only;
+		qcom,bw-tbl =
+			<   769 /*  100.8 MHz */ >,
+			<  1611 /*  211.2 MHz */ >,     /*Low SVS*/
+			<  2124 /*  278.4 MHz */ >,
+			<  2929 /*  384   MHz */ >,     /* SVS */
+			<  3221 /*  422.4 MHz */ >,
+			<  4248 /*  556.8 MHz */ >,
+			<  5053 /*  662.4 MHz */ >,     /* SVS+  */
+			<  5712 /*  748.8 MHz */ >,     /* NOM   */
+			<  6079 /*  796.8 MHz */ >,     /* NOM+  */
+			<  6445 /*  844.8 MHz */ >,
+			<  7104 /*  931.2 MHz */ >;     /* TURBO */
 	};
 
-	/delete-node/ qcom,cpu-cpu-ddr-bw;
-	cpu_cpu_ddr_bw: qcom,cpu-cpu-ddr-bw {
+	/delete-node/ qcom,mincpubw;
+	mincpubw: qcom,mincpubw {
 		compatible = "qcom,devbw";
-		governor = "performance";
-		qcom,src-dst-ports =
-			<MSM_BUS_MASTER_AMPSS_M0 MSM_BUS_SLAVE_EBI_CH0>;
+		governor = "cpufreq";
+		qcom,src-dst-ports = <1 512>;
 		qcom,active-only;
-		operating-points-v2 = <&ddr_bw_opp_table>;
-	};
-
-	/delete-node/ qcom,cpu0-cpu-ddr-latfloor;
-	cpu0_cpu_ddr_latfloor: qcom,cpu0-cpu-ddr-latfloor {
-		compatible = "qcom,devbw";
-		governor = "performance";
-		qcom,src-dst-ports =
-			<MSM_BUS_MASTER_AMPSS_M0 MSM_BUS_SLAVE_EBI_CH0>;
-		qcom,active-only;
-		operating-points-v2 = <&ddr_bw_opp_table>;
-	};
-
-	/delete-node/ qcom,cpu4-cpu-ddr-latfloor;
-	cpu4_cpu_ddr_latfloor: qcom,cpu4-cpu-ddr-latfloor {
-		compatible = "qcom,devbw";
-		governor = "performance";
-		qcom,src-dst-ports =
-			<MSM_BUS_MASTER_AMPSS_M0 MSM_BUS_SLAVE_EBI_CH0>;
-		qcom,active-only;
-		operating-points-v2 = <&ddr_bw_opp_table>;
+		qcom,bw-tbl =
+			<   769 /*  100.8 MHz */ >,
+			<  1611 /*  211.2 MHz */ >,     /*Low SVS*/
+			<  2124 /*  278.4 MHz */ >,
+			<  2929 /*  384   MHz */ >,     /* SVS */
+			<  3221 /*  422.4 MHz */ >,
+			<  4248 /*  556.8 MHz */ >,
+			<  5053 /*  662.4 MHz */ >,     /* SVS+  */
+			<  5712 /*  748.8 MHz */ >,     /* NOM   */
+			<  6079 /*  796.8 MHz */ >,     /* NOM+  */
+			<  6445 /*  844.8 MHz */ >,
+			<  7104 /*  931.2 MHz */ >;     /* TURBO */
 	};
 
 	/delete-node/ qcom,cci;
 	cci_cache: qcom,cci {
 		compatible = "devfreq-simple-dev";
 		clock-names = "devfreq_clk";
-		clocks = <&apsscc APCS_MUX_CCI_CLK>;
-		governor = "performance";
+		clocks = <&clock_cpu clk_cci_clk>;
+		governor = "cpufreq";
 		freq-tbl-khz =
 			<  400000 >,
 			<  400000 >,
@@ -121,64 +126,110 @@
 			<  576000 >;
 	};
 
-	/delete-node/ qcom,cpu0-cpugrp;
-	cpu0_memlat_cpugrp: qcom,cpu0-cpugrp {
-		compatible = "qcom,arm-memlat-cpugrp";
-		qcom,cpulist = <&CPU0 &CPU1 &CPU2 &CPU3>;
+	/delete-node/ devfreq-cpufreq;
+	devfreq-cpufreq {
+		cpubw-cpufreq {
+		target-dev = <&cpubw>;
+		cpu-to-dev-map-0 =
+			< 1305600  5053 >,
+			< 1497600  5712 >,
+			< 1708800  6445 >,
+			< 1804800  7104 >,
+			< 1958400  7104 >,
+			< 2016000  7104 >;
+		cpu-to-dev-map-4 =
+			<  768000  2929 >,
+			<  998400  5053 >,
+			< 1171200  5712 >,
+			< 1305600  6079 >,
+			< 1459200  7104 >;
 
-		cpu0_computemon: qcom,cpu0-computemon {
-			compatible = "qcom,arm-compute-mon";
-			qcom,cpulist = <&CPU0 &CPU1 &CPU2 &CPU3>;
-			qcom,target-dev = <&cpu0_cpu_ddr_latfloor>;
-			qcom,core-dev-table =
-				< 1305600 MHZ_TO_MBPS(384, 8) >,
-				< 1804800 MHZ_TO_MBPS(557, 8) >;
 		};
-	};
 
-	/delete-node/ qcom,cpu4-cpugrp;
-	cpu4_memlat_cpugrp: qcom,cpu4-cpugrp {
-		compatible = "qcom,arm-memlat-cpugrp";
-		qcom,cpulist = <&CPU4 &CPU5 &CPU6 &CPU7>;
+		cci-cpufreq {
+		target-dev = <&cci_cache>;
+		cpu-to-dev-map-0 =
+			< 1305600  400000 >,
+			< 1497600  400000 >,
+			< 1708800  533000 >,
+			< 1804800  576000 >,
+			< 1958400  576000 >,
+			< 2016000  576000 >;
+		cpu-to-dev-map-4 =
+			<  768000  400000 >,
+			<  998400  400000 >,
+			< 1171200  400000 >,
+			< 1305600  533000 >,
+			< 1459200  576000 >;
+		};
 
-		cpu4_computemon: qcom,cpu4-computemon {
-			compatible = "qcom,arm-compute-mon";
-			qcom,cpulist = <&CPU4 &CPU5 &CPU6 &CPU7>;
-			qcom,target-dev = <&cpu4_cpu_ddr_latfloor>;
-			qcom,core-dev-table =
-				< 1171200 MHZ_TO_MBPS(384, 8) >,
-				< 1459200 MHZ_TO_MBPS(749, 8) >;
+		mincpubw-cpufreq {
+			target-dev = <&mincpubw>;
+			cpu-to-dev-map-0 =
+				< 1305600 2929 >,
+				< 1804800 5712 >;
+			cpu-to-dev-map-4 =
+				< 1171200 2929 >,
+				< 1459200 5712 >;
 		};
 	};
 };
 
-
-/ {
+/{
 	/delete-node/ energy-costs;
 	energy_costs: energy-costs {
+		compatible = "sched-energy";
 
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
-				 406 137
-				 663 207
-				 761 256
-				 868 327
-				 917 343
-				 995 445
-				1024 470
+				 800000	137
+				1305600	207
+				1497600	256
+				1708800	327
+				1804800	343
+				1958400	445
+				2016000	470
 			>;
 			idle-cost-data = <
 				100 80 60 40
 			>;
 		};
-
 		CPU_COST_1: core-cost1 {
 			busy-cost-data = <
-				355 43
-				461 56
-				541 71
-				603 89
-				674 120
+				 768000	43
+				 998400	56
+				1171200	71
+				1305600	89
+				1459200	120
+			>;
+			idle-cost-data = <
+				40 20 10 8
+			>;
+		};
+		CLUSTER_COST_0: cluster-cost0 {
+			busy-cost-data = <
+				 800000	49
+				1305600	61
+				1497600	71
+				1708800	85
+				1804800	88
+				1958400	110
+				2016000	120
+			>;
+			idle-cost-data = <
+				4 3 2 1
+			>;
+		};
+		CLUSTER_COST_1: cluster-cost1 {
+			busy-cost-data = <
+				 768000	8
+				 998400	10
+				1171200	13
+				1305600	15
+				1459200	20
+			>;
+			idle-cost-data = <
+				4 3 2 1
 			>;
 		};
 	};
@@ -217,10 +268,10 @@
 		qcom,firmware-name = "a506_zap";
 		memory-region = <&gpu_mem>;
 		qcom,mas-crypto = <&mas_crypto>;
-		clocks = <&gcc GCC_CRYPTO_CLK>,
-		<&gcc GCC_CRYPTO_AHB_CLK>,
-		<&gcc GCC_CRYPTO_AXI_CLK>,
-		<&gcc CRYPTO_CLK_SRC>;
+		clocks = <&clock_gcc clk_gcc_crypto_clk>,
+		<&clock_gcc clk_gcc_crypto_ahb_clk>,
+		<&clock_gcc clk_gcc_crypto_axi_clk>,
+		<&clock_gcc clk_crypto_clk_src>;
 		clock-names = "scm_core_clk", "scm_iface_clk",
 				"scm_bus_clk", "scm_core_clk_src";
 		qcom,proxy-clock-names = "scm_core_clk", "scm_iface_clk",
@@ -237,12 +288,11 @@
 	};
 };
 
-&apsscc {
-	cpu-vdd-supply = <&apc_vreg_corner>;
-	vdd_hf_pll-supply = <&pm8953_l7_ao>;
-	vdd_dig_ao-supply = <&pm8953_s2_level_ao>;
-	vdd_sr2_pll-supply = <&pm8953_l7_ao>;
-	vdd_sr2_dig_ao-supply = <&pm8953_s2_level_ao>;
+&clock_cpu {
+	compatible = "qcom,cpu-clock-sdm439";
+	vdd-c0-supply = <&apc_vreg_corner>;
+	vdd-c1-supply = <&apc_vreg_corner>;
+	vdd-cci-supply = <&apc_vreg_corner>;
 	qcom,speed0-bin-v0-c0 =
 		<          0 0>,
 		<  768000000 1>,
@@ -328,23 +378,44 @@
 		<  533333333 3>;
 };
 
-&gcc {
-	vdd_cx-supply = <&pm8953_s2_level>;
+&clock_gcc {
+	compatible = "qcom,gcc-sdm439";
+	reg = <0x1800000 0x80000>,
+		<0xb016000 0x00040>,
+		<0xb116000 0x00040>,
+		<0x00a6018 0x00004>;
+	reg-names = "cc_base", "apcs_c1_base",
+			"apcs_c0_base", "efuse";
+	vdd_dig-supply = <&pm8953_s2_level>;
+	vdd_sr2_dig-supply = <&pm8953_s2_level_ao>;
+	vdd_sr2_pll-supply = <&pm8953_l7_ao>;
+	vdd_hf_dig-supply = <&pm8953_s2_level_ao>;
+	vdd_hf_pll-supply = <&pm8953_l7_ao>;
 };
 
-&gcc_mdss {
+&soc {
+	devfreq_spdm_cpu {
+		status = "disabled";
+	};
+
+	devfreq_spdm_gov {
+		status = "disabled";
+	};
+};
+
+&clock_gcc_mdss {
 	compatible = "qcom,gcc-mdss-sdm439";
-	clocks = <&mdss_dsi0_pll PCLK_SRC_MUX_0_CLK>,
-		<&mdss_dsi0_pll BYTE_CLK_SRC_0_CLK>,
-		<&mdss_dsi1_pll PCLK_SRC_MUX_1_CLK>,
-		<&mdss_dsi1_pll BYTE_CLK_SRC_1_CLK>;
+	clocks = <&mdss_dsi0_pll clk_dsi0pll_pixel_clk_src>,
+		 <&mdss_dsi0_pll clk_dsi0pll_byte_clk_src>,
+		 <&mdss_dsi1_pll clk_dsi1pll_pixel_clk_src>,
+		 <&mdss_dsi1_pll clk_dsi1pll_byte_clk_src>;
 	clock-names = "pclk0_src", "byte0_src", "pclk1_src",
 		"byte1_src";
 	#clock-cells = <1>;
 };
 
 &mdss_dsi0_pll {
-	compatible = "qcom,mdss_dsi_pll_12nm";
+	compatible = "qcom,mdss_dsi_pll_sdm439";
 	reg = <0x001a94400 0x400>,
 		<0x0184d074 0x8>;
 	reg-names = "pll_base", "gdsc_base";
@@ -355,7 +426,7 @@
 };
 
 &mdss_dsi1_pll {
-	compatible = "qcom,mdss_dsi_pll_12nm";
+	compatible = "qcom,mdss_dsi_pll_sdm439";
 	reg = <0x001a96400 0x400>,
 		<0x0184d074 0x8>;
 	reg-names = "pll_base", "gdsc_base";
@@ -372,19 +443,6 @@
 		0x1a96000 0x1a96000 0x300
 		0x1a96400 0x1a96400 0x400
 		0x193e000 0x193e000 0x30>;
-
-	clocks = <&gcc_mdss MDSS_MDP_VOTE_CLK>,
-		<&gcc GCC_MDSS_AHB_CLK>,
-		<&gcc GCC_MDSS_AXI_CLK>,
-		<&mdss_dsi0_pll BYTE_CLK_SRC_0_CLK>,
-		<&mdss_dsi1_pll BYTE_CLK_SRC_1_CLK>,
-		<&mdss_dsi0_pll PCLK_SRC_MUX_0_CLK>,
-		<&mdss_dsi1_pll PCLK_SRC_MUX_1_CLK>;
-
-	clock-names = "mdp_core_clk", "iface_clk", "bus_clk",
-		"ext_byte0_clk", "ext_byte1_clk", "ext_pixel0_clk",
-		"ext_pixel1_clk";
-
 };
 
 &mdss_dsi0 {
@@ -409,31 +467,20 @@
 	/delete-property/ qcom,platform-lane-config;
 };
 
-/* GPU Overrides */
-&soc {
-	/delete-node/ gpu-bw-tbl;
-	gpu_bw_tbl: gpu-bw-tbl {
-		compatible = "operating-points-v2";
-		opp-0   { opp-hz = /bits/ 64 < 0 >;     }; /* OFF */
-
-		opp-100 { opp-hz = /bits/ 64 < 769 >;   }; /*  1. 100 MHz */
-
-		opp-211 { opp-hz = /bits/ 64 < 1611 >;  }; /*  2. 211 MHz */
-
-		opp-298 { opp-hz = /bits/ 64 < 2273 >;  }; /*  3. 298 MHz */
-
-		opp-384 { opp-hz = /bits/ 64 < 2929 >;  }; /*  4. 384 MHz */
-
-		opp-557 { opp-hz = /bits/ 64 < 4248 >;  }; /*  5. 557 MHz */
-
-		opp-700 { opp-hz = /bits/ 64 < 5346 >;  }; /*  6. 700 MHz */
-
-		opp-748 { opp-hz = /bits/ 64 < 5712 >;  }; /*  7. 748 MHz */
-
-		opp-806 { opp-hz = /bits/ 64 < 6150 >;  }; /*  8. 806 MHz */
-
-		opp-931 { opp-hz = /bits/ 64 < 7105 >;  }; /*  9. 931 MHz */
-	};
+/* GPU Overrides*/
+&gpubw {
+	/delete-property/qcom,bw-tbl;
+	qcom,bw-tbl =
+		< 0    >, /*  off */
+		<  769 >, /* 1. DDR:100.80 MHz BIMC: 50.40 MHz */
+		< 1611 >, /* 2. DDR:211.20 MHz BIMC: 105.60 MHz */
+		< 2273 >, /* 3. DDR:297.60 MHz BIMC: 148.80 MHz */
+		< 2929 >, /* 4. DDR:384.00 MHz BIMC: 192.00 MHz */
+		< 4248 >, /* 5. DDR:556.80 MHz BIMC: 278.40 MHz */
+		< 5346 >, /* 6. DDR:662.40 MHz BIMC: 331.20 MHz */
+		< 5712 >, /* 7. DDR:748.80 MHz BIMC: 374.40 MHz */
+		< 6150 >, /* 8. DDR:796.80 MHz BIMC: 398.40 MHz */
+		< 7105 >; /* 9. DDR:931.20 MHz BIMC: 465.60 MHz */
 };
 
 &msm_gpu {
@@ -597,7 +644,7 @@
 				qcom,bus-max = <8>;
 			};
 
-			/*  SVS+ */
+			/* SVS+ */
 			qcom,gpu-pwrlevel@1 {
 				reg = <1>;
 				qcom,gpu-freq = <400000000>;
@@ -682,5 +729,4 @@
 
 &usb_otg {
 	qcom,hsusb-otg-phy-init-seq = <0x43 0x80 0x06 0x82 0xffffffff>;
-	/delete-property/ vbus_otg-supply;
 };

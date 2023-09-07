@@ -1,15 +1,27 @@
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 &soc {
 	qcom,vidc@1d00000 {
 		compatible = "qcom,msm-vidc";
 		reg = <0x01d00000 0xff000>;
-		interrupts = <0 44 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 44 0>;
 		qcom,hfi-version = "3xx";
 		venus-supply = <&gdsc_venus>;
 		venus-core0-supply = <&gdsc_venus_core0>;
-		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
-			<&gcc GCC_VENUS0_CORE0_VCODEC0_CLK>,
-			<&gcc GCC_VENUS0_AHB_CLK>,
-			<&gcc GCC_VENUS0_AXI_CLK>;
+		clocks = <&clock_gcc clk_gcc_venus0_vcodec0_clk>,
+			<&clock_gcc clk_gcc_venus0_core0_vcodec0_clk>,
+			<&clock_gcc clk_gcc_venus0_ahb_clk>,
+			<&clock_gcc clk_gcc_venus0_axi_clk>;
 		clock-names = "core_clk", "core0_clk", "iface_clk", "bus_clk";
 		qcom,clock-configs = <0x1 0x0 0x0 0x0>;
 		qcom,sw-power-collapse;
@@ -40,12 +52,10 @@
 				qcom,cycles-per-mb = <2316>;
 				qcom,low-power-mode-factor = <32768>;
 			};
-
 			qcom,profile-dec {
 				qcom,codec-mask = <0xf3ffffff>;
 				qcom,cycles-per-mb = <788>;
 			};
-
 			qcom,profile-hevcdec {
 				qcom,codec-mask = <0x0c000000>;
 				qcom,cycles-per-mb = <1015>;
@@ -60,9 +70,6 @@
 				<&apps_iommu 0x807 0x00>,
 				<&apps_iommu 0x808 0x27>,
 				<&apps_iommu 0x811 0x20>;
-			qcom,iommu-dma-addr-pool = <0x5dc00000 0x7f000000
-				0xdcc00000 0x1000000>;
-			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0xfff>;
 			virtual-addr-pool = <0x5dc00000 0x7f000000
 				0xdcc00000 0x1000000>;
@@ -74,24 +81,18 @@
 			iommus = <&apps_iommu 0x900 0x00>,
 				<&apps_iommu 0x90a 0x04>,
 				<&apps_iommu 0x909 0x22>;
-			qcom,iommu-dma-addr-pool = <0x4b000000 0x12c00000>;
-			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0x241>;
 			virtual-addr-pool = <0x4b000000 0x12c00000>;
 			qcom,secure-context-bank;
-			qcom,iommu-vmid = <0x9>; /*VMID_CP_BITSTREAM*/
 		};
 
 		secure_pixel_cb {
 			compatible = "qcom,msm-vidc,context-bank";
 			label = "venus_sec_pixel";
 			iommus = <&apps_iommu 0x90c 0x20>;
-			qcom,iommu-dma-addr-pool = <0x25800000 0x25800000>;
-			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0x106>;
 			virtual-addr-pool = <0x25800000 0x25800000>;
 			qcom,secure-context-bank;
-			qcom,iommu-vmid = <0xA>; /*VMID_CP_PIXEL*/
 		};
 
 		secure_non_pixel_cb {
@@ -101,12 +102,9 @@
 				<&apps_iommu 0x907 0x08>,
 				<&apps_iommu 0x908 0x20>,
 				<&apps_iommu 0x90d 0x20>;
-			qcom,iommu-dma-addr-pool = <0x1000000 0x24800000>;
-			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0x480>;
 			virtual-addr-pool = <0x1000000 0x24800000>;
 			qcom,secure-context-bank;
-			qcom,iommu-vmid = <0xB>; /*VMID_CP_NON_PIXEL*/
 		};
 
 		/* Buses */
@@ -115,7 +113,7 @@
 			label = "venus-ddr";
 			qcom,bus-master = <MSM_BUS_MASTER_VIDEO_P0>;
 			qcom,bus-slave = <MSM_BUS_SLAVE_EBI_CH0>;
-			qcom,mode = "venus-ddr";
+			qcom,bus-governor = "venus-ddr-gov";
 			qcom,bus-range-kbps = <1000 917000>;
 		};
 
@@ -124,7 +122,7 @@
 			label = "venus-arm9-ddr";
 			qcom,bus-master = <MSM_BUS_MASTER_VIDEO_P0>;
 			qcom,bus-slave = <MSM_BUS_SLAVE_EBI_CH0>;
-			qcom,mode = "performance";
+			qcom,bus-governor = "performance";
 			qcom,bus-range-kbps = <1 1>;
 		};
 	};
@@ -150,7 +148,6 @@
 					<9000   35000>,    /* QVGA30E    */
 					<0      0>;
 			};
-
 			qcom,profile-dec {
 				qcom,codec-mask = <0xffffffff>;
 				qcom,load-busfreq-tbl =

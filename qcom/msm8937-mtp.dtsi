@@ -180,13 +180,13 @@
 		qcom,nq-clkreq = <&pm8937_gpios 5 0x00>;
 		interrupt-parent = <&tlmm>;
 		qcom,clk-src = "BBCLK2";
-		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <17 0>;
 		interrupt-names = "nfc_irq";
 		pinctrl-names = "nfc_active", "nfc_suspend";
 		pinctrl-0 = <&nfc_int_active &nfc_disable_active
 						&nfc_clk_default>;
 		pinctrl-1 = <&nfc_int_suspend &nfc_disable_suspend>;
-		clocks = <&rpmcc RPM_SMD_BB_CLK2_PIN>;
+		clocks = <&clock_gcc clk_bb_clk2_pin>;
 		clock-names = "ref_clk";
 	};
 };

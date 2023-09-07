@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "msm8937-mdss-panels.dtsi"
 #include "sdm439-camera-sensor-qrd.dtsi"
 
@@ -87,7 +100,7 @@
 		pinctrl-0 = <&nfc_int_active &nfc_disable_active
 						&nfc_clk_default>;
 		pinctrl-1 = <&nfc_int_suspend &nfc_disable_suspend>;
-		clocks = <&rpmcc RPM_SMD_BB_CLK2_PIN>;
+		clocks = <&clock_gcc clk_bb_clk2_pin>;
 		clock-names = "ref_clk";
 	};
 };
@@ -137,7 +150,7 @@
 	fpc1020 {
 		compatible = "fpc,fpc1020";
 		interrupt-parent = <&tlmm>;
-		interrupts = <48 0>; /* TBD */
+		interrupts = <48 0>;
 		fpc,gpio_rst = <&tlmm 124 0x0>;
 		fpc,gpio_irq = <&tlmm 48 0>;
 		vcc_spi-supply = <&pm8953_l5>;
@@ -212,17 +225,14 @@
 			mux {
 				pins = "gpio60";
 			};
-
 			config {
 				pins = "gpio60";
 			};
 		};
-
 		mdss_dsi_suspend: mdss_dsi_suspend {
 			mux {
 				pins = "gpio60";
 			};
-
 			config {
 				pins = "gpio60";
 			};
@@ -346,6 +356,12 @@
 #include "smb1355.dtsi"
 };
 
+&pmi632_vadc {
+	chan@4a {
+		qcom,scale-function = <22>;
+	};
+};
+
 &pmi632_gpios {
 	smb_en {
 		smb_en_default: smb_en_default {
@@ -380,7 +396,6 @@
 			pins = "gpio61";
 			function = "gpio";
 		};
-
 		config {
 			pins = "gpio61";
 			drive-strength = <2>;
@@ -390,30 +405,32 @@
 	};
 };
 
-&smb1355 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&smb_int_default
-		&smb_en_default &pmi632_sense_default &pmi632_ctm_default>;
-	interrupt-parent = <&tlmm>;
-	interrupts = <61 IRQ_TYPE_LEVEL_LOW>;
-	status = "ok";
-	smb1355_charger: qcom,smb1355-charger@1000 {
-		status = "ok";
-		qcom,parallel-mode = <1>;
-		qcom,disable-ctm;
-		qcom,hw-die-temp-mitigation;
-	};
-};
-
 &smb1355_0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&smb_int_default
 		&smb_en_default &pmi632_sense_default &pmi632_ctm_default>;
 	interrupt-parent = <&tlmm>;
 	interrupts = <61 IRQ_TYPE_LEVEL_LOW>;
-	status = "ok";
 	smb1355_charger_0: qcom,smb1355-charger@1000 {
-		status = "ok";
+		status ="ok";
+		/delete-property/ io-channels;
+		/delete-property/ io-channels-names;
+		qcom,parallel-mode = <1>;
+		qcom,disable-ctm;
+		qcom,hw-die-temp-mitigation;
+	};
+};
+
+&smb1355_1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&smb_int_default
+		&smb_en_default &pmi632_sense_default &pmi632_ctm_default>;
+	interrupt-parent = <&tlmm>;
+	interrupts = <61 IRQ_TYPE_LEVEL_LOW>;
+	smb1355_charger_1: qcom,smb1355-charger@1000 {
+		status ="ok";
+		/delete-property/ io-channels;
+		/delete-property/ io-channels-names;
 		qcom,parallel-mode = <1>;
 		qcom,disable-ctm;
 		qcom,hw-die-temp-mitigation;

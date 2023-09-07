@@ -26,14 +26,16 @@
 &usb_otg {
 
 	/delete-property/ clocks;
-	clocks = <&gcc GCC_USB_HS_AHB_CLK>,
-			 <&gcc GCC_USB_HS_SYSTEM_CLK>,
-			 <&gcc GCC_USB2A_PHY_SLEEP_CLK>,
-			 <&rpmcc BIMC_USB_CLK>,
-			 <&rpmcc SNOC_USB_CLK>,
-			 <&rpmcc PNOC_USB_CLK>,
-			 <&gcc GCC_USB_HS_PHY_CFG_AHB_CLK>,
-			 <&rpmcc CXO_SMD_OTG_CLK>;
+	clocks = <&clock_gcc clk_gcc_usb_hs_ahb_clk>,
+			 <&clock_gcc clk_gcc_usb_hs_system_clk>,
+			 <&clock_gcc clk_gcc_usb2a_phy_sleep_clk>,
+			 <&clock_gcc clk_bimc_usb_clk>,
+			 <&clock_gcc clk_snoc_usb_clk>,
+			 <&clock_gcc clk_pnoc_usb_clk>,
+			 <&clock_gcc clk_gcc_qusb2_phy_clk>,
+			 <&clock_gcc clk_gcc_usb2_hs_phy_only_clk>,
+			 <&clock_gcc clk_gcc_usb_hs_phy_cfg_ahb_clk>,
+			 <&clock_gcc clk_xo_otg_clk>;
 
 	qcom,usbbam@78c4000 {
 		/delete-property/ qcom,reset-bam-on-disconnect;
@@ -119,8 +121,8 @@
 
 		coresight-name = "coresight-funnel-right";
 
-		clocks = <&rpmcc RPM_SMD_QDSS_CLK>,
-			 <&rpmcc RPM_SMD_QDSS_A_CLK>;
+		clocks = <&clock_gcc clk_qdss_clk>,
+			 <&clock_gcc clk_qdss_a_clk>;
 		clock-names = "apb_pclk";
 
 		ports {
@@ -172,8 +174,8 @@
 		reg-names = "cti-base";
 		coresight-name = "coresight-cti-modem-cpu0";
 
-		clocks = <&rpmcc RPM_SMD_QDSS_CLK>,
-			 <&rpmcc RPM_SMD_QDSS_A_CLK>;
+		clocks = <&clock_gcc clk_qdss_clk>,
+			 <&clock_gcc clk_qdss_a_clk>;
 		clock-names = "apb_pclk";
 	};
 
@@ -186,8 +188,8 @@
 		reg-names = "cti-base";
 		coresight-name = "coresight-cti-modem-cpu1";
 
-		clocks = <&rpmcc RPM_SMD_QDSS_CLK>,
-			 <&rpmcc RPM_SMD_QDSS_A_CLK>;
+		clocks = <&clock_gcc clk_qdss_clk>,
+			 <&clock_gcc clk_qdss_a_clk>;
 		clock-names = "apb_pclk";
 	};
 
@@ -205,12 +207,16 @@
 
 };
 
-&gcc {
-	compatible = "qcom,gcc-msm8940";
+&clock_gcc {
+	compatible = "qcom,gcc-8940";
 };
 
-&rpmcc {
-	compatible = "qcom,rpmcc-msm8940";
+&clock_debug {
+	compatible = "qcom,cc-debug-8940";
+};
+
+&clock_gcc_mdss {
+	compatible = "qcom,gcc-mdss-8940";
 };
 
 &bam_dmux {
@@ -222,15 +228,15 @@
 		compatible = "qcom,ipa";
 		reg = <0x07900000 0x4effc>, <0x07904000 0x26934>;
 		reg-names = "ipa-base", "bam-base";
-		interrupts = <0 228 IRQ_TYPE_LEVEL_HIGH>,
-				<0 230 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 228 0>,
+				<0 230 0>;
 		interrupt-names = "ipa-irq", "bam-irq";
 		qcom,ipa-hw-ver = <6>; /* IPA core version = IPAv2.6L */
 		qcom,ipa-hw-mode = <0>; /* IPA hw type = Normal */
 		qcom,wan-rx-ring-size = <192>; /* IPA WAN-rx-ring-size*/
 		qcom,lan-rx-ring-size = <192>; /* IPA LAN-rx-ring-size*/
 		clock-names = "core_clk";
-		clocks = <&rpmcc RPM_SMD_IPA_CLK>;
+		clocks = <&clock_gcc clk_ipa_clk>;
 		qcom,ee = <0>;
 		qcom,use-ipa-tethering-bridge;
 		qcom,modem-cfg-emb-pipe-flt;

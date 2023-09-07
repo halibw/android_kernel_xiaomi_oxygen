@@ -1,20 +1,27 @@
+/* Copyright (c) 2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 &mdss_mdp {
 	dsi_dual_xrsmrtvwr_jdi_video: qcom,mdss_dsi_xrsmrtvwr_video_jdi {
 		qcom,mdss-dsi-panel-name =
-			"Dual Smart XR Viewer LPM029M483A R63455 jdi panel";
+		"XR SMRTViewer LPM029M483AR63455 video jdi dual wth no DSC";
 		qcom,mdss-dsi-panel-type = "dsi_video_mode";
 		qcom,mdss-dsi-virtual-channel-id = <0>;
 		qcom,mdss-dsi-stream = <0>;
 		qcom,mdss-dsi-panel-hdr-enabled;
 		qcom,mdss-dsi-panel-hdr-color-primaries = <14500 15500 32000
-			17000 15500 30000 8000 3000>;
+				17000 15500 30000 8000 3000>;
 		qcom,mdss-dsi-panel-peak-brightness = <4200000>;
 		qcom,mdss-dsi-panel-blackness-level = <3230>;
-
-		qcom,dsi-ctrl-num = <0 1>;
-		qcom,dsi-phy-num = <0 1>;
-		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
-
 		qcom,mdss-dsi-traffic-mode = "non_burst_sync_event";
 		qcom,mdss-dsi-bllp-eof-power-mode;
 		qcom,mdss-dsi-bllp-power-mode;
@@ -34,7 +41,7 @@
 		qcom,mdss-dsi-bpp = <24>;
 
 		qcom,mdss-dsi-display-timings {
-			timing@0 {
+			timing@0{
 				qcom,mdss-dsi-panel-width = <1440>;
 				qcom,mdss-dsi-panel-height = <1440>;
 				qcom,mdss-dsi-h-front-porch = <40>;
@@ -73,15 +80,18 @@
 					29 01 00 00 00 00 02 D6 80
 					29 01 00 00 00 00 02 B0 03
 					];
-				qcom,mdss-dsi-off-command = [
-					05 01 00 00 32 00 02 28 00
-					05 01 00 00 32 00 02 34 00
-					05 01 00 00 78 00 02 10 00
-					];
-				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
-				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
-				qcom,mdss-dsi-h-sync-pulse = <0>;
+					qcom,mdss-dsi-off-command = [
+						05 01 00 00 32 00 02 28 00
+						05 01 00 00 32 00 02 34 00
+						05 01 00 00 78 00 02 10 00
+						];
+					qcom,mdss-dsi-on-command-state =
+						"dsi_lp_mode";
+					qcom,mdss-dsi-off-command-state =
+						"dsi_hs_mode";
+					qcom,mdss-dsi-h-sync-pulse = <0>;
 			};
 		};
 	};
 };
+
