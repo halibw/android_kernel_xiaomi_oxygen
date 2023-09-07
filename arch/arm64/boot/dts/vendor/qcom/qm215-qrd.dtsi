@@ -1,5 +1,15 @@
-#include <dt-bindings/clock/qcom,rpmcc.h>
-#include <dt-bindings/iio/qcom,spmi-vadc.h>
+/*
+ * Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
 &blsp1_uart2 {
 	status = "ok";
@@ -7,10 +17,10 @@
 	pinctrl-0 = <&uart_console_active>;
 };
 
-#include <dt-bindings/clock/qcom,gcc-sdm429w.h>
+#include <dt-bindings/clock/msm-clocks-8952.h>
 #include "qm215-camera-sensor-qrd.dtsi"
 
-&pm8916_chg {
+&pm8916_chg{
 	status = "ok";
 	qcom,chgr-led-support;
 	qcom,vddmax-mv = <4400>;
@@ -18,21 +28,15 @@
 	qcom,batt-hot-percentage = <35>;
 };
 
-&pm8916_bms {
+&pm8916_bms{
 	status = "ok";
 	qcom,battery-data = <&qrd_batterydata>;
 	qcom,batt-aging-comp;
 	qcom,resume-soc = <99>;
 };
 
-&pm8916_vib {
+&pm8916_vib{
 	status = "ok";
-};
-
-&pm8916_vadc {
-	batt_therm {
-		qcom,scale-fn-type = <ADC_SCALE_BATT_THERM_QRD_215>;
-	};
 };
 
 &soc {
@@ -168,7 +172,6 @@
 		qcom,supply-enable-load = <100000>;
 		qcom,supply-disable-load = <100>;
 	};
-
 	/delete-node/ qcom,panel-supply-entry@1;
 	/delete-node/ qcom,panel-supply-entry@2;
 	/delete-node/ qcom,panel-supply-entry@3;
@@ -205,7 +208,7 @@
 		pinctrl-0 = <&nfc_int_active &nfc_disable_active
 						&nfc_clk_default>;
 		pinctrl-1 = <&nfc_int_suspend &nfc_disable_suspend>;
-		clocks = <&rpmcc RPM_SMD_BB_CLK2_PIN>;
+		clocks = <&clock_gcc clk_bb_clk2_pin>;
 		clock-names = "ref_clk";
 	};
 };

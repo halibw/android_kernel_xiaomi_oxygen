@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 #include "sdm439.dtsi"
 #include "sdm429-cpu.dtsi"
 
@@ -31,18 +43,14 @@
 		};
 	};
 
-	/delete-node/ syscon@0b11101c;
-	cpu_debug: syscon@0b01101c {
-		compatible = "syscon";
-		reg = <0x0b01101c 0x4>;
-	};
-
 	/delete-node/ qcom,msm-cpufreq;
 	msm_cpufreq: qcom,msm-cpufreq {
 		compatible = "qcom,msm-cpufreq";
-		clocks = <&apsscc APCS_MUX_CCI_CLK>,
-			 <&apsscc APCS_MUX_C1_CLK>;
-		clock-names = "l2_clk", "cpu0_clk";
+		clock-names =
+			"l2_clk",
+			"cpu0_clk";
+		clocks = <&clock_cpu clk_cci_clk>,
+			 <&clock_cpu clk_a53_bc_clk>;
 
 		qcom,governor-per-policy;
 
@@ -56,25 +64,39 @@
 			 < 2016000 >;
 	};
 
-	/delete-node/ qcom,cpu4-cpu-ddr-latfloor;
+	/delete-node/ devfreq-cpufreq;
+	devfreq-cpufreq {
+		cpubw-cpufreq {
+		target-dev = <&cpubw>;
+		cpu-to-dev-map =
+			<  960000  2929 >,
+			< 1305600  5053 >,
+			< 1497600  5712 >,
+			< 1708800  6445 >,
+			< 1804800  7104 >,
+			< 1958400  7104 >,
+			< 2016000  7104 >;
+		};
 
-	/delete-node/ qcom,cpu0-cpugrp;
-	cpu0_memlat_cpugrp: qcom,cpu0-cpugrp {
-		compatible = "qcom,arm-memlat-cpugrp";
-		qcom,cpulist = <&CPU0 &CPU1 &CPU2 &CPU3>;
+		cci-cpufreq {
+		target-dev = <&cci_cache>;
+		cpu-to-dev-map =
+			<  960000  400000 >,
+			< 1305600  400000 >,
+			< 1497600  400000 >,
+			< 1708800  533000 >,
+			< 1804800  576000 >,
+			< 1958400  576000 >,
+			< 2016000  576000 >;
+		};
 
-		cpu0_computemon: qcom,cpu0-computemon {
-			compatible = "qcom,arm-compute-mon";
-			qcom,cpulist = <&CPU0 &CPU1 &CPU2 &CPU3>;
-			qcom,target-dev = <&cpu0_cpu_ddr_latfloor>;
-			qcom,core-dev-table =
-				< 1305600 MHZ_TO_MBPS(384, 8) >,
-				< 1804800 MHZ_TO_MBPS(749, 8) >;
+		mincpubw-cpufreq {
+			target-dev = <&mincpubw>;
+			cpu-to-dev-map =
+				< 1305600 2929 >,
+				< 1804800 5712 >;
 		};
 	};
-
-	/delete-node/ qcom,cpu4-cpugrp;
-
 };
 
 &funnel_apss {
@@ -108,33 +130,55 @@
 	};
 };
 
-&gcc {
-	vdd_cx-supply = <&pm8953_s2_level>;
+&clock_gcc {
+	compatible = "qcom,gcc-sdm429";
+	reg = <0x1800000 0x80000>,
+		<0xb016000 0x00040>;
+	reg-names = "cc_base", "apcs_c1_base";
+	vdd_dig-supply = <&pm8953_s2_level>;
+	vdd_hf_dig-supply = <&pm8953_s2_level_ao>;
+	vdd_hf_pll-supply = <&pm8953_l7_ao>;
 };
 
-&debugcc {
-	compatible = "qcom,sdm429-debugcc";
-	qcom,cpu = <&cpu_debug>;
+&clock_debug {
+	compatible = "qcom,cc-debug-8917";
+	reg = <0x1874000 0x4>,
+		<0xb01101c 0x8>;
+	reg-names = "cc_base", "meas";
+	#clock-cells = <1>;
 };
 
 &soc {
-	/delete-node/ qcom,clock-cpu@b111050;
-	apsscc: qcom,clock-cpu@b111050 {
+	devfreq_spdm_cpu {
+		status = "disabled";
+	};
+
+	devfreq_spdm_gov {
+		status = "disabled";
+	};
+};
+
+&soc {
+	/delete-node/ qcom,cpu-clock-8939@b111050;
+	clock_cpu: qcom,cpu-clock-8939@b111050 {
 		compatible = "qcom,cpu-clock-sdm429";
+
 		reg =   <0xb011050 0x8>,
 			<0xb1d1050 0x8>,
-			<0xb016000 0x34>,
-			<0x00a412c 0x8>,
-			<0xb011200 0x100>;
+			<0x00a412c 0x8>;
 		reg-names = "apcs-c1-rcg-base",
-			"apcs-cci-rcg-base", "apcs_pll1", "efuse",
-			"spm_c1_base";
-		clocks = <&rpmcc RPM_SMD_XO_A_CLK_SRC>,
-			<&gcc GPLL0_AO_OUT_MAIN>;
-		clock-names = "xo_ao", "gpll0_ao" ;
-		cpu-vdd-supply = <&apc_vreg_corner>;
-		vdd_dig_ao-supply = <&pm8953_s2_level_ao>;
-		vdd_hf_pll-supply = <&pm8953_l7_ao>;
+			"apcs-cci-rcg-base", "efuse";
+
+		qcom,num-cluster;
+		vdd-c1-supply = <&apc_vreg_corner>;
+		vdd-cci-supply = <&apc_vreg_corner>;
+
+		clocks = <&clock_gcc clk_gpll0_ao_clk_src>,
+			<&clock_gcc clk_a53ss_c1_pll>,
+			<&clock_gcc clk_gpll0_ao_clk_src>,
+			<&clock_gcc clk_gpll0_ao_clk_src>;
+		clock-names = "clk-c1-4", "clk-c1-5",
+				"clk-cci-4", "clk-cci-2";
 
 		qcom,speed0-bin-v0-c1 =
 			<          0 0>,
@@ -189,29 +233,6 @@
 			<  533333333 3>;
 
 		#clock-cells = <1>;
-
-		qcom,cpu-isolation {
-			compatible = "qcom,cpu-isolate";
-			cpu0_isolate: cpu0-isolate {
-				qcom,cpu = <&CPU0>;
-				#cooling-cells = <2>;
-			};
-
-			cpu1_isolate: cpu1-isolate {
-				qcom,cpu = <&CPU1>;
-				#cooling-cells = <2>;
-			};
-
-			cpu2_isolate: cpu2-isolate {
-				qcom,cpu = <&CPU2>;
-				#cooling-cells = <2>;
-			};
-
-			cpu3_isolate: cpu3-isolate {
-				qcom,cpu = <&CPU3>;
-				#cooling-cells = <2>;
-			};
-		};
 	};
 
 	/* Disable secure_mem node */
@@ -230,12 +251,12 @@
 	size = <0 0x400000>;
 };
 
-&gcc_mdss {
-	compatible = "qcom,gcc-mdss-sdm439";
-	clocks = <&mdss_dsi0_pll PCLK_SRC_MUX_0_CLK>,
-		<&mdss_dsi0_pll BYTE_CLK_SRC_0_CLK>,
-		<&mdss_dsi1_pll PCLK_SRC_MUX_1_CLK>,
-		<&mdss_dsi1_pll BYTE_CLK_SRC_1_CLK>;
+&clock_gcc_mdss {
+	compatible = "qcom,gcc-mdss-sdm429";
+	clocks = <&mdss_dsi0_pll clk_dsi0pll_pixel_clk_src>,
+		 <&mdss_dsi0_pll clk_dsi0pll_byte_clk_src>,
+		 <&mdss_dsi1_pll clk_dsi1pll_pixel_clk_src>,
+		 <&mdss_dsi1_pll clk_dsi1pll_byte_clk_src>;
 	clock-names = "pclk0_src", "byte0_src", "pclk1_src",
 		"byte1_src";
 	#clock-cells = <1>;

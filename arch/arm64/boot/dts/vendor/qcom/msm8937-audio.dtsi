@@ -1,4 +1,16 @@
-#include <dt-bindings/clock/qcom,audio-ext-clk.h>
+/*
+ * Copyright (c) 2018, 2020, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "msm-audio-lpass.dtsi"
 #include "msm8953-wsa881x.dtsi"
 
@@ -8,10 +20,10 @@
 };
 
 &soc {
-	audio_apr: qcom,msm-audio-apr {
+	qcom,msm-audio-apr {
 		compatible = "qcom,msm-audio-apr";
-		q6core: q6core {
-			compatible = "qcom,q6core-audio";
+		msm_audio_apr_dummy {
+			compatible = "qcom,msm-audio-apr-dummy";
 		};
 	};
 
@@ -82,6 +94,8 @@
 			<&dai_mi2s0>, <&dai_mi2s1>,
 			<&dai_mi2s2>, <&dai_mi2s3>,
 			<&dai_mi2s4>, <&dai_mi2s5>,
+			<&sb_0_rx>, <&sb_0_tx>, <&sb_1_rx>, <&sb_1_tx>,
+			<&sb_3_rx>, <&sb_3_tx>, <&sb_4_rx>, <&sb_4_tx>,
 			<&bt_sco_rx>, <&bt_sco_tx>,
 			<&int_fm_rx>, <&int_fm_tx>,
 			<&afe_pcm_rx>, <&afe_pcm_tx>,
@@ -94,6 +108,10 @@
 				"msm-dai-q6-mi2s.0", "msm-dai-q6-mi2s.1",
 				"msm-dai-q6-mi2s.2", "msm-dai-q6-mi2s.3",
 				"msm-dai-q6-mi2s.4", "msm-dai-q6-mi2s.6",
+				"msm-dai-q6-dev.16384", "msmdai-q6-dev.16385",
+				"msm-dai-q6-dev.16386", "msm-dai-q6-dev.16387",
+				"msm-dai-q6-dev.16390", "msm-dai-q6-dev.16391",
+				"msm-dai-q6-dev.16392", "msm-dai-q6-dev.16393",
 				"msm-dai-q6-dev.12288", "msm-dai-q6-dev.12289",
 				"msm-dai-q6-dev.12292", "msm-dai-q6-dev.12293",
 				"msm-dai-q6-dev.224", "msm-dai-q6-dev.225",
@@ -143,14 +161,11 @@
 			status = "okay";
 			compatible = "qcom,wsa881x-i2c-codec";
 			reg = <0x0f>;
-			clock-names = "wsa_mclk";
-			clocks = <&wsa881x_analog_clk 0>;
 			qcom,wsa-analog-vi-gpio = <&wsa881x_analog_vi_gpio>;
 			qcom,wsa-analog-clk-gpio = <&wsa881x_analog_clk_gpio>;
 			qcom,wsa-analog-reset-gpio =
 				<&wsa881x_analog_reset_gpio>;
 		};
-
 		wsa881x_i2c_45: wsa881x-i2c-codec@45 {
 			status = "okay";
 			compatible = "qcom,wsa881x-i2c-codec";
@@ -164,27 +179,17 @@
 		pinctrl-0 = <&wsa_vi_on>;
 		pinctrl-1 = <&wsa_vi_off>;
 	};
-
 	wsa881x_analog_clk_gpio: wsa881x_analog_clk_pctrl {
 		compatible = "qcom,msm-cdc-pinctrl";
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&wsa_clk_on>;
 		pinctrl-1 = <&wsa_clk_off>;
 	};
-
 	wsa881x_analog_reset_gpio: wsa881x_analog_reset_pctrl {
 		compatible = "qcom,msm-cdc-pinctrl";
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&wsa_reset_on>;
 		pinctrl-1 = <&wsa_reset_off>;
-	};
-
-	wsa881x_analog_clk: wsa_ana_clk {
-		compatible = "qcom,audio-ref-clk";
-		qcom,codec-ext-clk-src = <AUDIO_LPASS_MCLK_2>;
-		qcom,codec-lpass-ext-clk-freq = <9600000>;
-		qcom,codec-lpass-clk-id = <0x300>;
-		#clock-cells = <1>;
 	};
 
 	ext_codec: sound-9335 {
@@ -313,13 +318,11 @@
 	clock_audio: audio_ext_clk {
 		status = "disabled";
 		compatible = "qcom,audio-ref-clk";
-		qcom,use-pinctrl = <1>;
-		qcom,codec-ext-clk-src = <14>;
 		clock-names = "osr_clk";
 		qcom,node_has_rpm_clock;
 		#clock-cells = <1>;
 		qcom,audio-ref-clk-gpio = <&pm8937_gpios 1 0>;
-		clocks = <&rpmcc RPM_SMD_DIV_CLK2>;
+		clocks = <&clock_gcc clk_div_clk2>;
 		pinctrl-0 = <&cdc_mclk2_sleep>;
 		pinctrl-1 = <&cdc_mclk2_active>;
 	};
@@ -356,8 +359,9 @@
 
 		qcom,wcd-rst-gpio-node = <&wcd_rst_gpio>;
 
-		clock-names = "wcd_clk";
-		clocks = < &clock_audio 0>;
+		clock-names = "wcd_clk", "wcd_native_clk";
+		clocks = <&clock_audio clk_audio_pmi_clk>,
+			<&clock_audio clk_audio_ap_clk2>;
 
 		qcom,cdc-static-supplies =
 				"cdc-vdd-buck",
@@ -401,7 +405,7 @@
 };
 
 &pm8937_1 {
-	pmic_analog_codec: anlg-cdc@f000 {
+	pmic_analog_codec: analog-codec@f000 {
 		status = "okay";
 		compatible = "qcom,pmic-analog-codec";
 		reg = <0xf000 0x200>;

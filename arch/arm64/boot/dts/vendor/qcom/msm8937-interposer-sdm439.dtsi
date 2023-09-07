@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "msm8937.dtsi"
 #include "sdm439-pm8953.dtsi"
 #include "sdm439-audio.dtsi"
@@ -17,19 +30,15 @@
 	qcom,csiphy@1b34000 {
 		compatible = "qcom,csiphy-v3.4.2", "qcom,csiphy";
 	};
-
 	qcom,csiphy@1b35000 {
 		compatible = "qcom,csiphy-v3.4.2", "qcom,csiphy";
 	};
-
 	qcom,csid@1b30000 {
 		qcom,mipi-csi-vdd-supply = <&pm8953_l2>;
 	};
-
 	qcom,csid@1b30400 {
 		qcom,mipi-csi-vdd-supply = <&pm8953_l2>;
 	};
-
 	qcom,csid@1b30800 {
 		qcom,mipi-csi-vdd-supply = <&pm8953_l2>;
 	};
@@ -81,9 +90,9 @@
 
 	apc_vreg_corner: regulator@b018000 {
 		compatible = "qcom,cpr-regulator";
-		reg = <0xb018000 0x1000>, <0xb011064 0x4>, <0xa4000 0x1000>;
+		reg = <0xb018000 0x1000>, <0xb011064 4>, <0xa4000 0x1000>;
 		reg-names = "rbcpr", "rbcpr_clk", "efuse_addr";
-		interrupts = <0 15 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <0 15 0>;
 		regulator-name = "apc_corner";
 		regulator-min-microvolt = <1>;
 		regulator-max-microvolt = <7>;
@@ -159,9 +168,9 @@
 		qcom,cpr-enable;
 	};
 
-	qcom,clock-cpu@b111050 {
+	qcom,cpu-clock-8939@b111050 {
 		vdd-c0-supply = <&apc_vreg_corner>;
-		cpu-vdd-supply = <&apc_vreg_corner>;
+		vdd-c1-supply = <&apc_vreg_corner>;
 		vdd-cci-supply = <&apc_vreg_corner>;
 	};
 };

@@ -1,12 +1,20 @@
+/* Copyright (c) 2016-2017, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 &mdss_mdp {
-	dsi_dual_nt35597_truly_cmd: qcom,mdss_dsi_nt35597_truly_wqxga_cmd {
+	dsi_dual_nt35597_truly_cmd: qcom,mdss_dsi_nt35597_truly_wqxga_cmd{
 		qcom,mdss-dsi-panel-name =
 			"Dual nt35597 cmd mode dsi truly panel without DSC";
 		qcom,mdss-dsi-panel-type = "dsi_cmd_mode";
-
-		qcom,dsi-ctrl-num = <0 1>;
-		qcom,dsi-phy-num = <0 1>;
-
 		qcom,mdss-dsi-virtual-channel-id = <0>;
 		qcom,mdss-dsi-stream = <0>;
 		qcom,mdss-dsi-bpp = <24>;
@@ -38,13 +46,9 @@
 			17000 15500 30000 8000 3000>;
 		qcom,mdss-dsi-panel-peak-brightness = <4200000>;
 		qcom,mdss-dsi-panel-blackness-level = <3230>;
-		qcom,config-select = <&dsi_dual_nt35597_truly_cmd_config0>;
-		dsi_dual_nt35597_truly_cmd_config0: config0 {
-			qcom,split-mode = "dualctl-split";
-		};
 
 		qcom,mdss-dsi-display-timings {
-			timing@0 {
+			timing@0{
 				qcom,mdss-dsi-panel-framerate = <60>;
 				qcom,mdss-dsi-panel-width = <720>;
 				qcom,mdss-dsi-panel-height = <2560>;
@@ -85,7 +89,7 @@
 					15 01 00 00 00 00 02 5D 81
 					15 01 00 00 00 00 02 5E 00
 					15 01 00 00 00 00 02 5F 01
-					15 01 00 00 00 00 02 72 31
+					15 01 00 00 00 00 02 72 11
 					15 01 00 00 00 00 02 68 03
 					/* CMD2_P4 */
 					15 01 00 00 00 00 02 ff 24
@@ -206,6 +210,11 @@
 					15 01 00 00 00 00 02 E5 01
 					/* CMD mode(10) VDO mode(03) */
 					15 01 00 00 00 00 02 BB 10
+					/* NVT SDC */
+					15 01 00 00 00 00 02 C0 00
+					/* GRAM Slide Parameter */
+					29 01 00 00 00 00 0C C9 01 01 70
+					00 0A 06 67 04 C5 12 18
 					/* Non Reload MTP */
 					15 01 00 00 00 00 02 FB 01
 					/* SlpOut + DispOn */
@@ -214,14 +223,6 @@
 					];
 				qcom,mdss-dsi-off-command = [05 01 00 00 78 00
 					02 28 00 05 01 00 00 78 00 02 10 00];
-				qcom,mdss-dsi-panel-timings = [cd 32 22 00 60
-					64 26 34 29 03 04 00];
-				qcom,mdss-dsi-panel-timings-phy-v2 =
-					[23 1e 07 08 05 03 04 a0
-					23 1e 07 08 05 03 04 a0
-					23 1e 07 08 05 03 04 a0
-					23 1e 07 08 05 03 04 a0
-					23 18 07 08 04 03 04 a0];
 				qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 				qcom,mdss-dsi-off-command-state = "dsi_hs_mode";
 			};
