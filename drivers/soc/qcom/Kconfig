@@ -643,6 +643,15 @@ config QCOM_BUS_SCALING
 	for the active devices needs without keeping the clocks at max
 	frequency when a slower speed is sufficient.
 
+config MSM_SMEM
+	depends on ARCH_QCOM
+	depends on REMOTE_SPINLOCK_MSM
+	bool "MSM Shared Memory (SMEM)"
+	help
+	  Support for the shared memory interface between the various
+	  processors in the System on a Chip (SoC) which allows basic
+	  inter-processor communication.
+
 config  QCOM_BUS_CONFIG_RPMH
 	bool "RPMH Bus scaling driver"
 	depends on QCOM_BUS_SCALING
@@ -955,6 +964,27 @@ config QTI_HW_KEY_MANAGER
 	 and access key manager hardware block. This is used to interface with
 	 HWKM hardware to perform key operations from the kernel which will
 	 be used for storage encryption.
+
+config MSM_SMD
+	depends on MSM_SMEM
+	bool "MSM Shared Memory Driver (SMD)"
+	help
+	  Support for the shared memory interprocessor communication protocol
+	  which provides virual point to point serial channels between processes
+	  on the apps processor and processes on other processors in the SoC.
+	  Also includes support for the Shared Memory State Machine (SMSM)
+	  protocol which provides a mechanism to publish single bit state
+	  information to one or more processors in the SoC.
+
+config MSM_SMD_DEBUG
+	depends on MSM_SMD
+	bool "MSM SMD debug support"
+	help
+	  Support for debugging SMD and SMSM communication between apps and
+	  other processors in the SoC. Debug support primarily consists of
+	  logs consisting of information such as what interrupts were processed,
+	  what channels caused interrupt activity, and when internal state
+	  change events occur.
 
 source "drivers/soc/qcom/icnss2/Kconfig"
 
