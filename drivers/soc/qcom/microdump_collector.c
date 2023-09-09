@@ -8,7 +8,11 @@
 #include <linux/slab.h>
 #include <soc/qcom/subsystem_notif.h>
 #include <soc/qcom/ramdump.h>
+#ifndef CONFIG_MSM_SMEM
 #include <linux/soc/qcom/smem.h>
+#else
+#include <soc/qcom/smem.h>
+#endif
 
 #define SMEM_SSR_REASON_MSS0	421
 #define SMEM_SSR_DATA_MSS0	611
@@ -32,7 +36,12 @@ static int microdump_modem_notifier_nb(struct notifier_block *nb,
 		unsigned long code, void *data)
 {
 	int ret = 0;
+#ifdef CONFIG_MSM_SMEM
+	unsigned int size_reason = 0, size_data = 0;
+	unsigned int smem_id = 611;
+#else
 	size_t size_reason = 0, size_data = 0;
+#endif
 	char *crash_reason = NULL;
 	char *crash_data = NULL;
 	struct ramdump_segment segment[2];
@@ -42,8 +51,13 @@ static int microdump_modem_notifier_nb(struct notifier_block *nb,
 
 	memset(segment, 0, sizeof(segment));
 
+#ifndef CONFIG_MSM_SMEM
 	crash_reason = qcom_smem_get(QCOM_SMEM_HOST_ANY
 				, SMEM_SSR_REASON_MSS0, &size_reason);
+#else
+	crash_reason = smem_get_entry(SMEM_SSR_REASON_MSS0, &size_reason
+                                , 0, SMEM_ANY_HOST_FLAG);
+#endif
 
 	if (IS_ERR_OR_NULL(crash_reason)) {
 		pr_info("%s: smem %d not available\n",
@@ -54,8 +68,12 @@ static int microdump_modem_notifier_nb(struct notifier_block *nb,
 	segment[0].v_address = crash_reason;
 	segment[0].size = size_reason;
 
+#ifdef CONFIG_MSM_SMEM
+	crash_data = smem_get_entry(smem_id, &size_data, SMEM_MODEM, 0);
+#else
 	crash_data = qcom_smem_get(SMEM_MODEM
 				, SMEM_SSR_DATA_MSS0, &size_data);
+#endif
 
 	if (IS_ERR_OR_NULL(crash_data)) {
 		pr_info("%s: smem %d not available\n",
