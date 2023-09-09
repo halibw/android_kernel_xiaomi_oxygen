@@ -28,7 +28,11 @@
 #include <soc/qcom/ramdump.h>
 #include <soc/qcom/subsystem_restart.h>
 #include <soc/qcom/secure_buffer.h>
+#ifdef CONFIG_MSM_SMEM
+#include <soc/qcom/smem.h>
+#else
 #include <linux/soc/qcom/smem.h>
+#endif
 #include <linux/kthread.h>
 
 #include <linux/uaccess.h>
@@ -1667,7 +1671,11 @@ static int __init msm_pil_init(void)
 	struct device_node *np;
 	struct resource res;
 	int i;
+#ifdef CONFIG_MSM_SMEM
+	unsigned int size;
+#else
 	size_t size;
+#endif
 
 	np = of_find_compatible_node(NULL, NULL, "qcom,msm-imem-pil");
 	if (!np) {
@@ -1691,8 +1699,13 @@ static int __init msm_pil_init(void)
 		writel_relaxed(0, pil_info_base + (i * sizeof(u32)));
 
 	/* Get Global minidump ToC*/
+#ifdef CONFIG_MSM_SMEM
+	g_md_toc = smem_get_entry(SBL_MINIDUMP_SMEM_ID, &size, 0,
+                                  SMEM_ANY_HOST_FLAG);
+#else
 	g_md_toc = qcom_smem_get(QCOM_SMEM_HOST_ANY, SBL_MINIDUMP_SMEM_ID,
 				 &size);
+#endif
 	pr_debug("Minidump: g_md_toc is %pa\n", &g_md_toc);
 	if (PTR_ERR(g_md_toc) == -EPROBE_DEFER) {
 		pr_err("SMEM is not initialized.\n");

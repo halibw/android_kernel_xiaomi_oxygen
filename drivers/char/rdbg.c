@@ -19,7 +19,11 @@
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/of_gpio.h>
+#ifdef CONFIG_MSM_SMEM
+#include <soc/qcom/smem.h>
+#else
 #include <linux/soc/qcom/smem.h>
+#endif
 #include <linux/uaccess.h>
 #include <linux/interrupt.h>
 #include <linux/soc/qcom/smem_state.h>
@@ -815,9 +819,14 @@ static int rdbg_open(struct inode *inode, struct file *filp)
 		goto bail;
 	}
 
+#ifdef CONFIG_MSM_SMEM
+	rdbgdata->smem_addr = smem_find(proc_info[device_id].smem_buffer_addr,
+                rdbgdata->smem_size, 0, SMEM_ANY_HOST_FLAG);
+#else
 	rdbgdata->smem_addr = qcom_smem_get(QCOM_SMEM_HOST_ANY,
 			      proc_info[device_id].smem_buffer_addr,
 			      &(rdbgdata->smem_size));
+#endif
 	if (!rdbgdata->smem_addr) {
 		dev_err(rdbgdata->device, "%s: Could not allocate smem memory\n",
 			__func__);
