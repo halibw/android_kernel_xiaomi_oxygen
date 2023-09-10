@@ -1161,6 +1161,16 @@ config REGULATOR_MSM_GFX_LDO
 	  the higher ones by BHS. This driver allows for configuration of
 	  the rail between the LDO/BHS as well as the LDO voltage.
 
+config REGULATOR_QPNP
+	tristate "Qualcomm Technologies, Inc. QPNP regulator support"
+	depends on SPMI
+	help
+	  This driver supports voltage regulators in Qualcomm Technologies, Inc.
+	  PMIC chips which comply with QPNP.  QPNP is a SPMI based PMIC
+	  implementation.  These chips provide several different varieties of
+	  LDO and switching regulators.  They also provide voltage switches and
+	  boost regulators.
+
 config REGULATOR_RPMH
 	tristate "Qualcomm Technologies, Inc. Legacy RPMh regulator driver"
 	depends on QCOM_RPMH
