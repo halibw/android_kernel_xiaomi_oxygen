@@ -18,8 +18,8 @@ struct mdss_rgb_data {
 	struct platform_device *pdev;
 	struct spi_device *spi;
 	unsigned char *ctrl_base;
-	struct dss_io_data ctrl_io;
-	struct dss_io_data phy_io;
+	struct mdss_io_data ctrl_io;
+	struct mdss_io_data phy_io;
 	int reg_size;
 	u32 *dbg_bus;
 	int dbg_bus_size;
@@ -34,8 +34,8 @@ struct mdss_rgb_data {
 	u32 byte_clk_rate;
 
 	/* DSI core regulators */
-	struct dss_module_power panel_power_data;
-	struct dss_module_power power_data[DSI_MAX_PM];
+	struct mdss_module_power panel_power_data;
+	struct mdss_module_power power_data[DSI_MAX_PM];
 
 	/* DSI bus clocks */
 	struct clk *mdp_core_clk;

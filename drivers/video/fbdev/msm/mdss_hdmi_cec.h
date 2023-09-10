@@ -21,7 +21,7 @@
  */
 struct hdmi_cec_init_data {
 	struct workqueue_struct *workq;
-	struct dss_io_data *io;
+	struct mdss_io_data *io;
 	struct mdss_panel_info *pinfo;
 	struct cec_cbs *cbs;
 	struct cec_ops *ops;

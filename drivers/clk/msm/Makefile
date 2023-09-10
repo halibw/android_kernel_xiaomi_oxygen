@@ -37,4 +37,4 @@ obj-$(CONFIG_ARCH_MDM9607)	+= clock-a7.o
 obj-$(CONFIG_ARCH_MDM9650)	+= clock-a7.o
 endif
 
-#obj-y				+= mdss/
+obj-y				+= mdss/

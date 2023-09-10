@@ -16,5 +16,4 @@ config MSM_CLK_CONTROLLER_V2
 	   Generate clock data structures from definitions found in
 	   device tree.
 
-#source "drivers/clk/msm/mdss/Kconfig"
-
+source "drivers/clk/msm/mdss/Kconfig"
