@@ -1,4 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 /* Smart-Peripheral-Switch (SPS) API. */
 
 #ifndef _SPS_H_
@@ -52,7 +63,7 @@
 #define SPS_ADDR_INVALID      (0xDEADBEEF)
 
 /* Invalid peripheral device enumeration class */
-#define SPS_CLASS_INVALID     (0xDEADBEEF)
+#define SPS_CLASS_INVALID     ((unsigned long)-1)
 
 /*
  * This value specifies different configurations for an SPS connection.
@@ -109,6 +120,8 @@
 #define SPS_BAM_HOLD_MEM            (1UL << 8)
 /* Use cached write pointer */
 #define SPS_BAM_CACHED_WP           (1UL << 10)
+/* Reset BAM with pipes connected */
+#define SPS_BAM_FORCE_RESET         (1UL << 11)
 
 /* BAM device management flags */
 
@@ -353,7 +366,7 @@ struct sps_command_element {
 };
 
 /*
- * BAM device's security configuration
+ * BAM device's security configuation
  */
 struct sps_bam_pipe_sec_config_props {
 	u32 pipe_mask;
@@ -410,7 +423,7 @@ struct sps_bam_sec_config_props {
  * perform the configuration. The global (top-level) BAM interrupt will be
  * assigned to the EE of the processor that manages the BAM.
  *
- * @p_sec_config_props - BAM device's security configuration
+ * @p_sec_config_props - BAM device's security configuation
  *
  */
 struct sps_bam_props {
@@ -442,7 +455,7 @@ struct sps_bam_props {
 	u32 data_mem_id;
 
 	/* Feedback to BAM user */
-	void (*callback)(enum sps_callback_case, void *user);
+	void (*callback)(enum sps_callback_case, void *);
 	void *user;
 
 	/* Security properties */

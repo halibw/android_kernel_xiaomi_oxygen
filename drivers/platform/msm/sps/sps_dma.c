@@ -1,7 +1,16 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- * Copyright (c) 2011-2013, 2015, 2017-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, 2015, 2017, 2019, The Linux Foundation. All rights
+ * reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
+
 /* BAM-DMA Manager. */
 
 #ifdef CONFIG_SPS_SUPPORT_BAMDMA
@@ -575,7 +584,7 @@ int sps_alloc_dma_chan(const struct sps_alloc_dma_chan *alloc,
 	chan->priority = alloc->priority;
 	chan->weight = weight;
 
-	SPS_DBG3(sps, "sps:%s. pipe %d.\n", __func__, pipe_index);
+	SPS_DBG3(sps, "sps:sps_alloc_dma_chan. pipe %d.\n", pipe_index);
 
 	/* Report allocated pipes to client */
 	chan_info->dev = dev->h;
@@ -623,8 +632,8 @@ int sps_free_dma_chan(struct sps_dma_chan *chan)
 	if (pipe_index >= dev->num_pipes || ((pipe_index & 1)) ||
 	    (pipe_index + 1) != chan->src_pipe_index) {
 		SPS_ERR(sps,
-			"sps:%s. Invalid pipe indices. num_pipes=%d.dest=%d.src=%d.",
-			__func__, dev->num_pipes,
+			"sps:sps_free_dma_chan. Invalid pipe indices. num_pipes=%d.dest=%d.src=%d.",
+			dev->num_pipes,
 			chan->dest_pipe_index,
 			chan->src_pipe_index);
 		result = SPS_ERROR;
@@ -762,7 +771,7 @@ int sps_dma_pipe_enable(void *bam_arg, u32 pipe_index)
 	u32 channel;
 	int result = SPS_ERROR;
 
-	SPS_DBG3(sps, "sps:%s.pipe %d", __func__, pipe_index);
+	SPS_DBG3(sps, "sps:sps_dma_pipe_enable.pipe %d", pipe_index);
 
 	mutex_lock(&bam_dma_lock);
 

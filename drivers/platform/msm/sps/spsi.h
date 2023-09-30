@@ -1,7 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0 */
-/*
- * Copyright (c) 2011-2018, 2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
+
 /**
  * Smart-Peripheral-Switch (SPS) internal API.
  */
@@ -212,13 +220,13 @@ extern u8 print_limit_option;
 		}	\
 	} while (0)
 #else
-#define SPS_DBG3(dev, msg, args...)             pr_debug(msg, ##args)
-#define SPS_DBG2(dev, msg, args...)             pr_debug(msg, ##args)
-#define SPS_DBG1(dev, msg, args...)             pr_debug(msg, ##args)
-#define SPS_DBG(dev, msg, args...)              pr_debug(msg, ##args)
-#define SPS_INFO(dev, msg, args...)             pr_info(msg, ##args)
-#define SPS_ERR(dev, msg, args...)              pr_err(msg, ##args)
-#define SPS_DUMP(msg, args...)                  pr_info(msg, ##args)
+#define	SPS_DBG3(x...)		pr_debug(x)
+#define	SPS_DBG2(x...)		pr_debug(x)
+#define	SPS_DBG1(x...)		pr_debug(x)
+#define	SPS_DBG(x...)		pr_debug(x)
+#define	SPS_INFO(x...)		pr_info(x)
+#define	SPS_ERR(x...)		pr_err(x)
+#define	SPS_DUMP(x...)		pr_info(x)
 #endif
 
 /* End point parameters */

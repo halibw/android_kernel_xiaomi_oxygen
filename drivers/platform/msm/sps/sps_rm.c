@@ -1,7 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- * Copyright (c) 2011-2015, 2017-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2015, 2017, 2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
+
 /* Resource management for the SPS device driver. */
 
 #include <linux/types.h>	/* u32 */
@@ -168,8 +176,6 @@ static int sps_rm_assign(struct sps_pipe *pipe,
 			 struct sps_connection *map)
 {
 	struct sps_connect *cfg = &pipe->connect;
-	unsigned long desc_iova = 0;
-	unsigned long data_iova = 0;
 
 	/* Check ownership and BAM */
 	if ((cfg->mode == SPS_MODE_SRC && map->client_src != NULL) ||
@@ -208,30 +214,14 @@ static int sps_rm_assign(struct sps_pipe *pipe,
 	}
 	pipe->map = map;
 
-	SPS_DBG(pipe->bam, "sps:%s.bam %pa.pipe_index=%d\n",
-			__func__, BAM_ID(pipe->bam), pipe->pipe_index);
+	SPS_DBG(pipe->bam, "sps:sps_rm_assign.bam %pa.pipe_index=%d\n",
+			BAM_ID(pipe->bam), pipe->pipe_index);
 
 	/* Copy parameters to client connect state */
 	pipe->connect.src_pipe_index = map->src.pipe_index;
 	pipe->connect.dest_pipe_index = map->dest.pipe_index;
-
-	/*
-	 * The below assignment to connect.desc and connect.data will
-	 * overwrite the previous values given by the first client
-	 * in a BAM-to-BAM connection. Prevent that since the IOVAs
-	 * may be different for the same physical buffers if the
-	 * BAMs use different SMMUs.
-	 */
-	if (pipe->bam->props.options & SPS_BAM_SMMU_EN) {
-		desc_iova = pipe->connect.desc.iova;
-		data_iova = pipe->connect.data.iova;
-	}
 	pipe->connect.desc = map->desc;
 	pipe->connect.data = map->data;
-	if (pipe->bam->props.options & SPS_BAM_SMMU_EN) {
-		pipe->connect.desc.iova = desc_iova;
-		pipe->connect.data.iova = data_iova;
-	}
 
 	pipe->client_state = SPS_STATE_ALLOCATE;
 
