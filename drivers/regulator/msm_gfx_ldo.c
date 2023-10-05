@@ -1,6 +1,14 @@
-// SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 #define pr_fmt(fmt) "GFX_LDO: %s: " fmt, __func__
@@ -765,12 +773,34 @@ static int msm_gfx_ldo_is_enabled(struct regulator_dev *rdev)
 	return ldo_vreg->vreg_enabled;
 }
 
+/**
+ * msm_gfx_ldo_list_corner_voltage() - return the ldo voltage mapped to
+ *			the specified voltage corner
+ * @rdev:		Regulator device pointer for the msm_gfx_ldo
+ * @corner:		Voltage corner
+ *
+ * Return: voltage value in microvolts or -EINVAL if the corner is out of range
+ */
+static int msm_gfx_ldo_list_corner_voltage(struct regulator_dev *rdev,
+		int corner)
+{
+	struct msm_gfx_ldo *ldo_vreg  = rdev_get_drvdata(rdev);
+
+	corner -= MIN_CORNER_OFFSET;
+
+	if (corner >= 0 && corner < ldo_vreg->num_corners)
+		return ldo_vreg->open_loop_volt[corner];
+	else
+		return -EINVAL;
+}
+
 static struct regulator_ops msm_gfx_ldo_corner_ops = {
-	.enable		= msm_gfx_ldo_corner_enable,
-	.disable	= msm_gfx_ldo_disable,
-	.is_enabled	= msm_gfx_ldo_is_enabled,
-	.set_voltage	= msm_gfx_ldo_set_corner,
-	.get_voltage	= msm_gfx_ldo_get_corner,
+	.enable			= msm_gfx_ldo_corner_enable,
+	.disable		= msm_gfx_ldo_disable,
+	.is_enabled		= msm_gfx_ldo_is_enabled,
+	.set_voltage		= msm_gfx_ldo_set_corner,
+	.get_voltage		= msm_gfx_ldo_get_corner,
+	.list_corner_voltage	= msm_gfx_ldo_list_corner_voltage,
 };
 
 static int msm_gfx_ldo_get_bypass(struct regulator_dev *rdev,
@@ -1040,7 +1070,7 @@ static int msm_gfx_ldo_efuse_init(struct platform_device *pdev,
 	}
 
 	ldo_vreg->efuse_addr = res->start;
-	len = resource_size(res);
+	len = res->end - res->start + 1;
 
 	ldo_vreg->efuse_base = devm_ioremap(&pdev->dev,
 				ldo_vreg->efuse_addr, len);
@@ -1075,7 +1105,7 @@ static int msm_gfx_ldo_mem_acc_init(struct msm_gfx_ldo *ldo_vreg)
 	}
 
 	if (!of_find_property(of_node, "qcom,mem-acc-corner-map", &len)) {
-		pr_err("qcom,mem-acc-corner-map missing\n");
+		pr_err("qcom,mem-acc-corner-map missing");
 		return -EINVAL;
 	}
 
@@ -1113,7 +1143,7 @@ static int msm_gfx_ldo_init(struct platform_device *pdev,
 	}
 
 	ldo_vreg->ldo_addr = res->start;
-	len = resource_size(res);
+	len = res->end - res->start + 1;
 
 	ldo_vreg->ldo_base = devm_ioremap(ldo_vreg->dev,
 					ldo_vreg->ldo_addr, len);
@@ -1165,7 +1195,7 @@ static int ldo_parse_cx_parameters(struct msm_gfx_ldo *ldo_vreg)
 	}
 
 	if (!of_find_property(of_node, "qcom,vdd-cx-corner-map", &len)) {
-		pr_err("qcom,vdd-cx-corner-map missing\n");
+		pr_err("qcom,vdd-cx-corner-map missing");
 		return -EINVAL;
 	}
 
@@ -1292,7 +1322,7 @@ static int debugfs_ldo_mode_disable_get(void *data, u64 *val)
 	return 0;
 }
 
-DEFINE_DEBUGFS_ATTRIBUTE(ldo_mode_disable_fops, debugfs_ldo_mode_disable_get,
+DEFINE_SIMPLE_ATTRIBUTE(ldo_mode_disable_fops, debugfs_ldo_mode_disable_get,
 				debugfs_ldo_mode_disable_set, "%llu\n");
 
 static int debugfs_ldo_set_voltage(void *data, u64 val)
@@ -1373,8 +1403,15 @@ done:
 	mutex_unlock(&ldo_vreg->ldo_mutex);
 	return rc;
 }
-DEFINE_DEBUGFS_ATTRIBUTE(ldo_voltage_fops, debugfs_ldo_get_voltage,
+DEFINE_SIMPLE_ATTRIBUTE(ldo_voltage_fops, debugfs_ldo_get_voltage,
 				debugfs_ldo_set_voltage, "%llu\n");
+
+static int msm_gfx_ldo_debug_info_open(struct inode *inode, struct file *file)
+{
+	file->private_data = inode->i_private;
+
+	return 0;
+}
 
 static ssize_t msm_gfx_ldo_debug_info_read(struct file *file, char __user *buff,
 				size_t count, loff_t *ppos)
@@ -1390,7 +1427,7 @@ static ssize_t msm_gfx_ldo_debug_info_read(struct file *file, char __user *buff,
 
 	mutex_lock(&ldo_vreg->ldo_mutex);
 
-	len = scnprintf(debugfs_buf + ret, PAGE_SIZE - ret,
+	len = snprintf(debugfs_buf + ret, PAGE_SIZE - ret,
 		"Regulator_enable = %d Regulator mode = %s Corner = %d LDO-voltage = %d uV\n",
 		ldo_vreg->vreg_enabled,
 		ldo_vreg->mode == BHS_MODE ? "BHS" : "LDO",
@@ -1401,7 +1438,7 @@ static ssize_t msm_gfx_ldo_debug_info_read(struct file *file, char __user *buff,
 	for (i = 0; i < MAX_LDO_REGS; i++) {
 		reg[i] = 0;
 		reg[i] = readl_relaxed(ldo_vreg->ldo_base + (i * 4));
-		len = scnprintf(debugfs_buf + ret, PAGE_SIZE - ret,
+		len = snprintf(debugfs_buf + ret, PAGE_SIZE - ret,
 				"%s = 0x%x\n",  register_str[i], reg[i]);
 		ret += len;
 	}
@@ -1415,7 +1452,7 @@ static ssize_t msm_gfx_ldo_debug_info_read(struct file *file, char __user *buff,
 }
 
 static const struct file_operations msm_gfx_ldo_debug_info_fops = {
-	.open = simple_open,
+	.open = msm_gfx_ldo_debug_info_open,
 	.read = msm_gfx_ldo_debug_info_read,
 };
 
@@ -1463,7 +1500,7 @@ static int msm_gfx_ldo_corner_config_init(struct msm_gfx_ldo *ldo_vreg,
 
 	rc = msm_gfx_ldo_target_init(ldo_vreg);
 	if (rc) {
-		pr_err("Unable to initialize target specific data rc=%d\n", rc);
+		pr_err("Unable to initialize target specific data rc=%d", rc);
 		return rc;
 	}
 
@@ -1615,6 +1652,7 @@ static struct platform_driver msm_gfx_ldo_driver = {
 	.driver		= {
 		.name		= "qcom,msm-gfx-ldo",
 		.of_match_table = msm_gfx_ldo_match_table,
+		.owner		= THIS_MODULE,
 	},
 	.probe		= msm_gfx_ldo_probe,
 	.remove		= msm_gfx_ldo_remove,

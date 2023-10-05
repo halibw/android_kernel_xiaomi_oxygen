@@ -1,5 +1,14 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/* Copyright (c) 2012-2015, 2018-2020, The Linux Foundation. All rights reserved. */
+/* Copyright (c) 2012-2015, 2019 The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
 #define pr_fmt(fmt) "%s: " fmt, __func__
 
@@ -18,7 +27,7 @@
 #include <linux/regulator/of_regulator.h>
 #include <linux/regulator/rpm-smd-regulator.h>
 #include <soc/qcom/rpm-smd.h>
-#include <linux/debugfs.h>
+
 /* Debug Definitions */
 
 enum {
@@ -28,7 +37,9 @@ enum {
 };
 
 static int rpm_vreg_debug_mask;
-
+module_param_named(
+	debug_mask, rpm_vreg_debug_mask, int, S_IRUSR | S_IWUSR
+);
 
 #define vreg_err(req, fmt, ...) \
 	pr_err("%s: " fmt, req->rdesc.name, ##__VA_ARGS__)
@@ -41,14 +52,6 @@ enum rpm_regulator_type {
 	RPM_REGULATOR_TYPE_NCP,
 	RPM_REGULATOR_TYPE_BOB,
 	RPM_REGULATOR_TYPE_MAX,
-};
-
-/* Supported PMIC regulator LDO types */
-enum rpm_regulator_hw_type {
-	RPM_REGULATOR_HW_TYPE_UNKNOWN,
-	RPM_REGULATOR_HW_TYPE_PMIC4_LDO,
-	RPM_REGULATOR_HW_TYPE_PMIC5_LDO,
-	RPM_REGULATOR_HW_TYPE_MAX,
 };
 
 /* RPM resource parameters */
@@ -126,20 +129,20 @@ static struct rpm_regulator_param params[RPM_REGULATOR_PARAM_MAX] = {
 	/*    ID               LDO SMPS VS  NCP BOB  name  min max          property-name */
 	PARAM(ENABLE,            1,  1,  1,  1,  1, "swen", 0, 1,          "qcom,init-enable"),
 	PARAM(VOLTAGE,           1,  1,  0,  1,  1, "uv",   0, 0x7FFFFFF,  "qcom,init-voltage"),
-	PARAM(CURRENT,           0,  1,  0,  0,  0, "ma",   0, 0x1FFF,     "qcom,init-current"),
+	PARAM(CURRENT,           1,  1,  0,  0,  0, "ma",   0, 0x1FFF,     "qcom,init-current"),
 	PARAM(MODE_LDO,          1,  0,  0,  0,  0, "lsmd", 0, 1,          "qcom,init-ldo-mode"),
 	PARAM(MODE_SMPS,         0,  1,  0,  0,  0, "ssmd", 0, 2,          "qcom,init-smps-mode"),
 	PARAM(PIN_CTRL_ENABLE,   1,  1,  1,  0,  0, "pcen", 0, 0xF,        "qcom,init-pin-ctrl-enable"),
-	PARAM(PIN_CTRL_MODE,     0,  1,  1,  0,  0, "pcmd", 0, 0x1F,       "qcom,init-pin-ctrl-mode"),
+	PARAM(PIN_CTRL_MODE,     1,  1,  1,  0,  0, "pcmd", 0, 0x1F,       "qcom,init-pin-ctrl-mode"),
 	PARAM(FREQUENCY,         0,  1,  0,  1,  0, "freq", 0, 31,         "qcom,init-frequency"),
-	PARAM(HEAD_ROOM,         0,  0,  0,  1,  0, "hr",   0, 0x7FFFFFFF, "qcom,init-head-room"),
+	PARAM(HEAD_ROOM,         1,  0,  0,  1,  0, "hr",   0, 0x7FFFFFFF, "qcom,init-head-room"),
 	PARAM(QUIET_MODE,        0,  1,  0,  0,  0, "qm",   0, 2,          "qcom,init-quiet-mode"),
 	PARAM(FREQ_REASON,       0,  1,  0,  1,  0, "resn", 0, 8,          "qcom,init-freq-reason"),
-	PARAM(CORNER,            0,  1,  0,  0,  0, "corn", 0, 6,          "qcom,init-voltage-corner"),
-	PARAM(BYPASS,            0,  0,  0,  0,  0, "bypa", 0, 1,          "qcom,init-disallow-bypass"),
-	PARAM(FLOOR_CORNER,      0,  1,  0,  0,  0, "vfc",  0, 6,          "qcom,init-voltage-floor-corner"),
-	PARAM(LEVEL,             0,  1,  0,  0,  0, "vlvl", 0, 0xFFFF,     "qcom,init-voltage-level"),
-	PARAM(FLOOR_LEVEL,       0,  1,  0,  0,  0, "vfl",  0, 0xFFFF,     "qcom,init-voltage-floor-level"),
+	PARAM(CORNER,            1,  1,  0,  0,  0, "corn", 0, 6,          "qcom,init-voltage-corner"),
+	PARAM(BYPASS,            1,  0,  0,  0,  0, "bypa", 0, 1,          "qcom,init-disallow-bypass"),
+	PARAM(FLOOR_CORNER,      1,  1,  0,  0,  0, "vfc",  0, 6,          "qcom,init-voltage-floor-corner"),
+	PARAM(LEVEL,             1,  1,  0,  0,  0, "vlvl", 0, 0xFFFF,     "qcom,init-voltage-level"),
+	PARAM(FLOOR_LEVEL,       1,  1,  0,  0,  0, "vfl",  0, 0xFFFF,     "qcom,init-voltage-floor-level"),
 	PARAM(MODE_BOB,          0,  0,  0,  0,  1, "bobm", 0, 3,          "qcom,init-bob-mode"),
 	PARAM(PIN_CTRL_VOLTAGE1, 0,  0,  0,  0,  1, "pcv1", 0, 0x7FFFFFF,  "qcom,init-pin-ctrl-voltage1"),
 	PARAM(PIN_CTRL_VOLTAGE2, 0,  0,  0,  0,  1, "pcv2", 0, 0x7FFFFFF,  "qcom,init-pin-ctrl-voltage2"),
@@ -191,14 +194,12 @@ struct rpm_vreg {
 	bool			apps_only;
 	struct msm_rpm_request	*handle_active;
 	struct msm_rpm_request	*handle_sleep;
-	enum rpm_regulator_hw_type	regulator_hw_type;
 };
 
 struct rpm_regulator {
 	struct regulator_desc	rdesc;
 	struct regulator_dev	*rdev;
 	struct rpm_vreg		*rpm_vreg;
-	struct dentry		*dfs_root;
 	struct list_head	list;
 	bool			set_active;
 	bool			set_sleep;
@@ -421,7 +422,7 @@ static void rpm_regulator_req(struct rpm_regulator *regulator, int set,
 	}
 
 	pos += scnprintf(buf + pos, buflen - pos, "\n");
-	pr_info("%s\n", buf);
+	printk(buf);
 }
 
 #define RPM_VREG_SET_PARAM(_regulator, _param, _val) \
@@ -690,8 +691,8 @@ static int rpm_vreg_aggregate_requests(struct rpm_regulator *regulator)
 						wait_for_ack);
 		if (rc)
 			return rc;
-
-		rpm_vreg->sleep_request_sent = true;
+		else
+			rpm_vreg->sleep_request_sent = true;
 		rpm_vreg->aggr_req_sleep.valid |= modified_sleep;
 		rpm_vreg->wait_for_ack_sleep = false;
 	}
@@ -742,7 +743,7 @@ static int rpm_vreg_enable(struct regulator_dev *rdev)
 		RPM_VREG_SET_PARAM(reg, ENABLE, 1);
 		rc = rpm_vreg_aggregate_requests(reg);
 		if (rc) {
-			vreg_err(reg, "enable failed, rc=%d\n", rc);
+			vreg_err(reg, "enable failed, rc=%d", rc);
 			RPM_VREG_SET_PARAM(reg, ENABLE, prev_enable);
 		}
 	} else {
@@ -753,7 +754,7 @@ static int rpm_vreg_enable(struct regulator_dev *rdev)
 			reg->pin_ctrl_mask[RPM_VREG_PIN_CTRL_STATE_ENABLE]);
 		rc = rpm_vreg_aggregate_requests(reg);
 		if (rc) {
-			vreg_err(reg, "enable failed, rc=%d\n", rc);
+			vreg_err(reg, "enable failed, rc=%d", rc);
 			RPM_VREG_SET_PARAM(reg, PIN_CTRL_ENABLE, prev_enable);
 		}
 	}
@@ -777,7 +778,7 @@ static int rpm_vreg_disable(struct regulator_dev *rdev)
 		RPM_VREG_SET_PARAM(reg, ENABLE, 0);
 		rc = rpm_vreg_aggregate_requests(reg);
 		if (rc) {
-			vreg_err(reg, "disable failed, rc=%d\n", rc);
+			vreg_err(reg, "disable failed, rc=%d", rc);
 			RPM_VREG_SET_PARAM(reg, ENABLE, prev_enable);
 		}
 	} else {
@@ -788,7 +789,7 @@ static int rpm_vreg_disable(struct regulator_dev *rdev)
 			reg->pin_ctrl_mask[RPM_VREG_PIN_CTRL_STATE_DISABLE]);
 		rc = rpm_vreg_aggregate_requests(reg);
 		if (rc) {
-			vreg_err(reg, "disable failed, rc=%d\n", rc);
+			vreg_err(reg, "disable failed, rc=%d", rc);
 			RPM_VREG_SET_PARAM(reg, PIN_CTRL_ENABLE, prev_enable);
 		}
 	}
@@ -805,7 +806,7 @@ static int rpm_vreg_disable(struct regulator_dev *rdev)
 } \
 
 static int rpm_vreg_set_voltage(struct regulator_dev *rdev, int min_uV,
-				int max_uV, unsigned int *selector)
+				int max_uV, unsigned *selector)
 {
 	struct rpm_regulator *reg = rdev_get_drvdata(rdev);
 	int rc = 0;
@@ -841,7 +842,7 @@ static int rpm_vreg_set_voltage(struct regulator_dev *rdev, int min_uV,
 		rc = rpm_vreg_aggregate_requests(reg);
 
 	if (rc) {
-		vreg_err(reg, "set voltage for key=%s failed, rc=%d\n",
+		vreg_err(reg, "set voltage for key=%s failed, rc=%d",
 			params[reg->voltage_index].name, rc);
 		RPM_VREG_SET_VOLTAGE(reg, prev_voltage);
 	}
@@ -861,113 +862,6 @@ static int rpm_vreg_get_voltage(struct regulator_dev *rdev)
 		uV = VOLTAGE_UNKNOWN;
 
 	return uV;
-}
-
-#define REGULATOR_MODE_PMIC4_LDO_LPM	0
-#define REGULATOR_MODE_PMIC4_LDO_HPM	1
-#define REGULATOR_MODE_PMIC5_LDO_LPM	4
-#define REGULATOR_MODE_PMIC5_LDO_HPM	7
-
-static int _rpm_vreg_ldo_set_mode(struct regulator_dev *rdev, unsigned int mode)
-{
-	struct rpm_regulator *reg = rdev_get_drvdata(rdev);
-	u32 hw_mode;
-	int rc = 0;
-
-	if (mode == REGULATOR_MODE_NORMAL) {
-		switch (reg->rpm_vreg->regulator_hw_type) {
-		case RPM_REGULATOR_HW_TYPE_PMIC4_LDO:
-			hw_mode = REGULATOR_MODE_PMIC4_LDO_HPM;
-			break;
-
-		case RPM_REGULATOR_HW_TYPE_PMIC5_LDO:
-			hw_mode = REGULATOR_MODE_PMIC5_LDO_HPM;
-			break;
-
-		default:
-			vreg_err(reg, "unsupported ldo hw type: %d\n",
-					reg->rpm_vreg->regulator_hw_type);
-			return -EINVAL;
-		}
-	} else if (mode == REGULATOR_MODE_IDLE) {
-		switch (reg->rpm_vreg->regulator_hw_type) {
-		case RPM_REGULATOR_HW_TYPE_PMIC4_LDO:
-			hw_mode = REGULATOR_MODE_PMIC4_LDO_LPM;
-			break;
-
-		case RPM_REGULATOR_HW_TYPE_PMIC5_LDO:
-			hw_mode = REGULATOR_MODE_PMIC5_LDO_LPM;
-			break;
-
-		default:
-			vreg_err(reg, "unsupported ldo hw type: %d\n",
-					reg->rpm_vreg->regulator_hw_type);
-			return -EINVAL;
-		}
-	} else {
-		vreg_err(reg, "invalid mode: %u\n", mode);
-		return -EINVAL;
-	}
-
-	RPM_VREG_SET_PARAM(reg, MODE_LDO, hw_mode);
-
-	/*
-	 * Only send the mode if the regulator is currently enabled or if the
-	 * regulator has been configured to always send current updates.
-	 */
-	if (reg->always_send_current
-	    || rpm_vreg_active_or_sleep_enabled(reg->rpm_vreg)
-	    || rpm_vreg_shared_active_or_sleep_enabled_valid(reg->rpm_vreg))
-		rc = rpm_vreg_aggregate_requests(reg);
-
-	if (rc)
-		vreg_err(reg, "set mode failed, rc=%d\n", rc);
-
-	return rc;
-}
-
-static int rpm_vreg_ldo_set_mode(struct regulator_dev *rdev, unsigned int mode)
-{
-	struct rpm_regulator *reg = rdev_get_drvdata(rdev);
-	int rc = 0;
-
-	rpm_vreg_lock(reg->rpm_vreg);
-
-	rc = _rpm_vreg_ldo_set_mode(rdev, mode);
-
-	rpm_vreg_unlock(reg->rpm_vreg);
-
-	return rc;
-}
-
-static unsigned int rpm_vreg_ldo_get_mode(struct regulator_dev *rdev)
-{
-	struct rpm_regulator *reg = rdev_get_drvdata(rdev);
-	u32 hw_mode;
-
-	hw_mode = reg->req.param[RPM_REGULATOR_PARAM_MODE_LDO];
-	if (hw_mode == REGULATOR_MODE_PMIC4_LDO_HPM ||
-			hw_mode == REGULATOR_MODE_PMIC5_LDO_HPM)
-		return REGULATOR_MODE_NORMAL;
-
-	return REGULATOR_MODE_IDLE;
-}
-
-static int rpm_vreg_ldo_set_load(struct regulator_dev *rdev, int load_uA)
-{
-	struct rpm_regulator *reg = rdev_get_drvdata(rdev);
-	unsigned int mode;
-	int rc = 0;
-
-	rpm_vreg_lock(reg->rpm_vreg);
-
-	mode = (load_uA + reg->system_load >= reg->rpm_vreg->hpm_min_load)
-		? REGULATOR_MODE_NORMAL : REGULATOR_MODE_IDLE;
-	rc = _rpm_vreg_ldo_set_mode(rdev, mode);
-
-	rpm_vreg_unlock(reg->rpm_vreg);
-
-	return rc;
 }
 
 static int rpm_vreg_set_mode(struct regulator_dev *rdev, unsigned int mode)
@@ -1038,10 +932,6 @@ static unsigned int rpm_vreg_get_optimum_mode(struct regulator_dev *rdev,
 	load_mA = MICRO_TO_MILLI(load_uA);
 	if (load_mA > params[RPM_REGULATOR_PARAM_CURRENT].max)
 		load_mA = params[RPM_REGULATOR_PARAM_CURRENT].max;
-
-	rpm_vreg_lock(reg->rpm_vreg);
-	RPM_VREG_SET_PARAM(reg, CURRENT, load_mA);
-	rpm_vreg_unlock(reg->rpm_vreg);
 
 	return (load_uA >= reg->rpm_vreg->hpm_min_load)
 		? REGULATOR_MODE_NORMAL : REGULATOR_MODE_IDLE;
@@ -1201,7 +1091,7 @@ struct rpm_regulator *rpm_regulator_get(struct device *dev, const char *supply)
 
 	framework_reg = regulator_get_drvdata(regulator);
 	if (framework_reg == NULL) {
-		pr_err("regulator structure not found\n");
+		pr_err("regulator structure not found.\n");
 		regulator_put(regulator);
 		return ERR_PTR(-ENODEV);
 	}
@@ -1209,9 +1099,12 @@ struct rpm_regulator *rpm_regulator_get(struct device *dev, const char *supply)
 
 	rpm_vreg = framework_reg->rpm_vreg;
 
-	priv_reg = kzalloc(sizeof(*priv_reg), GFP_KERNEL);
-	if (priv_reg == NULL)
+	priv_reg = kzalloc(sizeof(struct rpm_regulator), GFP_KERNEL);
+	if (priv_reg == NULL) {
+		vreg_err(framework_reg,
+			"could not allocate memory for regulator\n");
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/*
 	 * Allocate a regulator_dev struct so that framework callback functions
@@ -1219,6 +1112,8 @@ struct rpm_regulator *rpm_regulator_get(struct device *dev, const char *supply)
 	 */
 	priv_reg->rdev = kzalloc(sizeof(struct regulator_dev), GFP_KERNEL);
 	if (priv_reg->rdev == NULL) {
+		vreg_err(framework_reg,
+			"could not allocate memory for regulator_dev\n");
 		kfree(priv_reg);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -1430,7 +1325,7 @@ int rpm_regulator_set_mode(struct rpm_regulator *regulator,
 		vreg_err(regulator, "unsupported regulator type: %d\n",
 			regulator->rpm_vreg->regulator_type);
 		return -EINVAL;
-	}
+	};
 
 	if (new_mode < params[index].min || new_mode > params[index].max) {
 		vreg_err(regulator, "invalid mode requested: %d for type: %d\n",
@@ -1462,9 +1357,9 @@ static struct regulator_ops ldo_ops = {
 	.is_enabled		= rpm_vreg_is_enabled,
 	.set_voltage		= rpm_vreg_set_voltage,
 	.get_voltage		= rpm_vreg_get_voltage,
-	.set_load		= rpm_vreg_ldo_set_load,
-	.set_mode		= rpm_vreg_ldo_set_mode,
-	.get_mode		= rpm_vreg_ldo_get_mode,
+	.set_mode		= rpm_vreg_set_mode,
+	.get_mode		= rpm_vreg_get_mode,
+	.get_optimum_mode	= rpm_vreg_get_optimum_mode,
 	.enable_time		= rpm_vreg_enable_time,
 };
 
@@ -1661,7 +1556,6 @@ static int rpm_vreg_device_set_voltage_index(struct device *dev,
 	return rc;
 }
 
-
 /*
  * This probe is called for child rpm-regulator devices which have
  * properties which are required to configure individual regulator
@@ -1679,6 +1573,11 @@ static int rpm_vreg_device_probe(struct platform_device *pdev)
 	int i, regulator_type;
 	u32 val;
 
+	if (!dev->of_node) {
+		dev_err(dev, "%s: device tree information missing\n", __func__);
+		return -ENODEV;
+	}
+
 	if (pdev->dev.parent == NULL) {
 		dev_err(dev, "%s: parent device missing\n", __func__);
 		return -ENODEV;
@@ -1691,9 +1590,12 @@ static int rpm_vreg_device_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	reg = kzalloc(sizeof(*reg), GFP_KERNEL);
-	if (reg == NULL)
+	reg = kzalloc(sizeof(struct rpm_regulator), GFP_KERNEL);
+	if (reg == NULL) {
+		dev_err(dev, "%s: could not allocate memory for reg\n",
+			__func__);
 		return -ENOMEM;
+	}
 
 	regulator_type		= rpm_vreg->regulator_type;
 	reg->rpm_vreg		= rpm_vreg;
@@ -1732,8 +1634,7 @@ static int rpm_vreg_device_probe(struct platform_device *pdev)
 
 	init_data = of_get_regulator_init_data(dev, node, &reg->rdesc);
 	if (init_data == NULL) {
-		dev_err(dev, "%s: failed to populate regulator_init_data\n",
-			__func__);
+		dev_err(dev, "%s: unable to allocate memory\n", __func__);
 		rc = -ENOMEM;
 		goto fail_free_reg;
 	}
@@ -1829,7 +1730,6 @@ static int rpm_vreg_device_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, reg);
 
-
 	pr_debug("successfully probed: %s\n", reg->rdesc.name);
 
 	return 0;
@@ -1853,17 +1753,22 @@ static int rpm_vreg_resource_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct device_node *node = dev->of_node;
 	struct rpm_vreg *rpm_vreg;
-	const char *type = "";
-	const char *prop;
 	int val = 0;
 	u32 resource_type;
 	int rc;
 
+	if (!dev->of_node) {
+		dev_err(dev, "%s: device tree information missing\n", __func__);
+		return -ENODEV;
+	}
 
 	/* Create new rpm_vreg entry. */
-	rpm_vreg = kzalloc(sizeof(*rpm_vreg), GFP_KERNEL);
-	if (rpm_vreg == NULL)
+	rpm_vreg = kzalloc(sizeof(struct rpm_vreg), GFP_KERNEL);
+	if (rpm_vreg == NULL) {
+		dev_err(dev, "%s: could not allocate memory for vreg\n",
+			__func__);
 		return -ENOMEM;
+	}
 
 	/* Required device tree properties: */
 	rc = of_property_read_string(node, "qcom,resource-name",
@@ -1897,29 +1802,6 @@ static int rpm_vreg_resource_probe(struct platform_device *pdev)
 			rpm_vreg->regulator_type);
 		rc = -EINVAL;
 		goto fail_free_vreg;
-	}
-
-	if (rpm_vreg->regulator_type == RPM_REGULATOR_TYPE_LDO) {
-		prop = "qcom,regulator-hw-type";
-		rpm_vreg->regulator_hw_type = RPM_REGULATOR_HW_TYPE_UNKNOWN;
-		rc = of_property_read_string(node, prop, &type);
-		if (rc) {
-			dev_err(dev, "%s is missing in DT node rc=%d\n",
-				prop, rc);
-			goto fail_free_vreg;
-		}
-
-		if (!strcmp(type, "pmic4-ldo")) {
-			rpm_vreg->regulator_hw_type
-				= RPM_REGULATOR_HW_TYPE_PMIC4_LDO;
-		} else if (!strcmp(type, "pmic5-ldo")) {
-			rpm_vreg->regulator_hw_type
-				= RPM_REGULATOR_HW_TYPE_PMIC5_LDO;
-		} else {
-			dev_err(dev, "unknown %s = %s\n",
-				prop, type);
-			goto fail_free_vreg;
-		}
 	}
 
 	/* Optional device tree properties: */
@@ -1987,12 +1869,12 @@ fail_free_vreg:
 	return rc;
 }
 
-static const struct of_device_id rpm_vreg_match_table_device[] = {
+static struct of_device_id rpm_vreg_match_table_device[] = {
 	{ .compatible = "qcom,rpm-smd-regulator", },
 	{}
 };
 
-static const struct of_device_id rpm_vreg_match_table_resource[] = {
+static struct of_device_id rpm_vreg_match_table_resource[] = {
 	{ .compatible = "qcom,rpm-smd-regulator-resource", },
 	{}
 };
@@ -2002,6 +1884,7 @@ static struct platform_driver rpm_vreg_device_driver = {
 	.remove = rpm_vreg_device_remove,
 	.driver = {
 		.name = "qcom,rpm-smd-regulator",
+		.owner = THIS_MODULE,
 		.of_match_table = rpm_vreg_match_table_device,
 	},
 };
@@ -2011,6 +1894,7 @@ static struct platform_driver rpm_vreg_resource_driver = {
 	.remove = rpm_vreg_resource_remove,
 	.driver = {
 		.name = "qcom,rpm-smd-regulator-resource",
+		.owner = THIS_MODULE,
 		.of_match_table = rpm_vreg_match_table_resource,
 	},
 };
@@ -2029,8 +1913,8 @@ int __init rpm_smd_regulator_driver_init(void)
 
 	if (initialized)
 		return 0;
-
-	initialized = true;
+	else
+		initialized = true;
 
 	/* Store parameter string names as integers */
 	for (i = 0; i < RPM_REGULATOR_PARAM_MAX; i++)
@@ -2042,6 +1926,7 @@ int __init rpm_smd_regulator_driver_init(void)
 
 	return platform_driver_register(&rpm_vreg_resource_driver);
 }
+EXPORT_SYMBOL(rpm_smd_regulator_driver_init);
 
 static void __exit rpm_vreg_exit(void)
 {

@@ -1,6 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 #ifndef __REGULATOR_CPR3_REGULATOR_H__
@@ -11,9 +19,8 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/types.h>
-#include <soc/qcom/apm.h>
+#include <linux/power/qcom/apm.h>
 #include <linux/regulator/driver.h>
-#include <linux/regulator/msm-ldo-regulator.h>
 
 struct cpr3_controller;
 struct cpr3_thread;
@@ -337,7 +344,7 @@ struct cpr3_regulator {
 	struct regulator_dev	*rdev;
 	struct regulator	*mem_acc_regulator;
 	struct regulator	*ldo_regulator;
-	enum msm_ldo_supply_mode ldo_regulator_bypass;
+	bool			ldo_regulator_bypass;
 	struct regulator	*ldo_ret_regulator;
 	struct cpr3_corner	*corner;
 	int			corner_count;
@@ -543,6 +550,9 @@ struct cpr3_panic_regs_info {
  *			that this CPR3 controller manages.
  * @cpr_ctrl_base:	Virtual address of the CPR3 controller base register
  * @fuse_base:		Virtual address of fuse row 0
+ * @saw_base:		Virtual address of the SAW module base register.  This
+ *			is used for CPR controllers that support HW closed-loop
+ *			on platforms which lack an SPM.
  * @aging_possible_reg:	Virtual address of an optional platform-specific
  *			register that must be ready to determine if it is
  *			possible to perform an aging measurement.
@@ -558,6 +568,7 @@ struct cpr3_panic_regs_info {
  * @soc_revision:	Revision number of the SoC.  This may be unused by
  *			platforms that do not have different behavior for
  *			different SoC revisions.
+ * @cpr_hw_version:	CPR controller version register value
  * @lock:		Mutex lock used to ensure mutual exclusion between
  *			all of the threads associated with the controller
  * @vdd_regulator:	Pointer to the VDD supply regulator which this CPR3
@@ -638,6 +649,24 @@ struct cpr3_panic_regs_info {
  *			defines the maximum number of VDD supply regulator steps
  *			that the voltage may be increased as the result of a
  *			single CPR measurement.
+ * @acd_adj_down_step_limit: Limits the number of PMIC steps to go down within
+ *			a given corner due to all ACD adjustments on some CPRh
+ *			controllers.
+ * @acd_adj_up_step_limit: Limits the number of PMIC steps to go up within a
+ *			given corner due to all ACD adjustments on some CPRh
+ *			controllers.
+ * @acd_adj_down_step_size: ACD step size in units of PMIC steps used for
+ *			target quotient adjustment due to an ACD down
+ *			recommendation.
+ * @acd_adj_up_step_size: ACD step size in units of PMIC steps used for
+ *			target quotient adjustment due to an ACD up
+ *			recommendation.
+ * @acd_notwait_for_cl_settled: Boolean which indicates ACD down recommendations
+ *			do not need to wait for CPR closed-loop to settle.
+ * @acd_adj_avg_fast_update: Boolean which indicates if CPR should issue
+ *			immediate voltage updates on ACD requests.
+ * @acd_avg_enabled:	Boolean defining the enable state of the ACD AVG
+ *			feature.
  * @count_mode:		CPR controller count mode
  * @count_repeat:	Number of times to perform consecutive sensor
  *			measurements when using all-at-once count modes.
@@ -695,13 +724,9 @@ struct cpr3_panic_regs_info {
  * @aging_possible_val:	Optional value that the masked aging_possible_reg
  *			register must have in order for a CPR aging measurement
  *			to be possible.
- * @aging_gcnt_scaling_factor: The scaling factor used to derive the gate count
- *			used for aging measurements. This value is divided by
- *			1000 when used as shown in the below equation:
- *			      Aging_GCNT = GCNT_REF * scaling_factor / 1000.
- *			For example, a value of 1500 specifies that the gate
- *			count (GCNT) used for aging measurement should be 1.5
- *			times of reference gate count (GCNT_REF).
+ * @ignore_invalid_fuses: Flag which indicates that invalid fuse parameter
+ *			values should be ignored.  This is used on simulator
+ *			targets which do not initialize fuse parameters.
  * @step_quot_fixed:	Fixed step quotient value used for target quotient
  *			adjustment if use_dynamic_step_quot is not set.
  *			This parameter is only relevant for CPR4 controllers
@@ -741,6 +766,12 @@ struct cpr3_panic_regs_info {
  *			the CPR controller to first use the default step_quot
  *			and then later switch to the run-time calibrated
  *			step_quot.
+ * @thread_has_always_vote_en: Boolean value which indicates that this CPR
+ *			controller should be configured to keep thread vote
+ *			always enabled. This configuration allows the CPR
+ *			controller to not consider MID/DN recommendations from
+ *			other thread when all sensors mapped to a thread
+ *			collapsed.
  *
  * This structure contains both configuration and runtime state data.  The
  * elements cpr_allowed_sw, use_hw_closed_loop, aggr_corner, cpr_enabled,
@@ -760,6 +791,7 @@ struct cpr3_controller {
 	int			ctrl_id;
 	void __iomem		*cpr_ctrl_base;
 	void __iomem		*fuse_base;
+	void __iomem		*saw_base;
 	void __iomem		*aging_possible_reg;
 	struct list_head	list;
 	struct cpr3_thread	*thread;
@@ -767,6 +799,7 @@ struct cpr3_controller {
 	u8			*sensor_owner;
 	int			sensor_count;
 	int			soc_revision;
+	u32			cpr_hw_version;
 	struct mutex		lock;
 	struct regulator	*vdd_regulator;
 	struct regulator	*system_regulator;
@@ -801,6 +834,13 @@ struct cpr3_controller {
 	int			step_volt;
 	u32			down_error_step_limit;
 	u32			up_error_step_limit;
+	u32			acd_adj_down_step_limit;
+	u32			acd_adj_up_step_limit;
+	u32			acd_adj_down_step_size;
+	u32			acd_adj_up_step_size;
+	bool			acd_notwait_for_cl_settled;
+	bool			acd_adj_avg_fast_update;
+	bool			acd_avg_enabled;
 	enum cpr3_count_mode	count_mode;
 	u32			count_repeat;
 	u32			proc_clock_throttle;
@@ -827,7 +867,8 @@ struct cpr3_controller {
 	int			aging_sensor_count;
 	u32			aging_possible_mask;
 	u32			aging_possible_val;
-	u32			aging_gcnt_scaling_factor;
+
+	bool			ignore_invalid_fuses;
 
 	u32			step_quot_fixed;
 	u32			initial_temp_band;
@@ -844,6 +885,7 @@ struct cpr3_controller {
 	struct notifier_block	panic_notifier;
 	bool			support_ldo300_vreg;
 	bool			reset_step_quot_loop_en;
+	bool			thread_has_always_vote_en;
 };
 
 /* Used for rounding voltages to the closest physically available set point. */

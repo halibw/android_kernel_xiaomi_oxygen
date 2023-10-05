@@ -27,7 +27,6 @@
 #include <linux/sched.h>
 #include <linux/cpu_pm.h>
 #include <linux/cpuhotplug.h>
-#include <linux/regulator/machine.h>
 #include <linux/sched/clock.h>
 #include <linux/sched/stat.h>
 #include <soc/qcom/pm.h>
@@ -1750,7 +1749,6 @@ static int lpm_suspend_enter(suspend_state_t state)
 	 * LPMs (XO and Vmin).
 	 */
 	clock_debug_print_enabled(true);
-	regulator_debug_print_enabled();
 
 	cpu_prepare(lpm_cpu, idx, false);
 	cluster_prepare(cluster, cpumask, idx, false, 0);

@@ -1,6 +1,14 @@
-// SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 /*
@@ -570,7 +578,7 @@ int cpr3_parse_common_corner_data(struct cpr3_regulator *vreg)
 			return rc;
 		}
 
-	/*
+		/*
 		 * Sanity check against arbitrarily large value to avoid
 		 * excessive memory allocation.
 		 */
@@ -605,7 +613,7 @@ int cpr3_parse_common_corner_data(struct cpr3_regulator *vreg)
 	if (max_speed_bins && vreg->speed_bin_fuse >= max_speed_bins) {
 		cpr3_err(vreg, "device tree config supports speed bins 0-%u but the hardware has speed bin %d\n",
 			max_speed_bins - 1, vreg->speed_bin_fuse);
-		WARN_ON(1);
+		BUG();
 		return -EINVAL;
 	}
 
@@ -1166,6 +1174,9 @@ int cpr3_parse_common_ctrl_data(struct cpr3_controller *ctrl)
 	if (rc)
 		return rc;
 
+	ctrl->ignore_invalid_fuses = of_property_read_bool(ctrl->dev->of_node,
+				"qcom,cpr-ignore-invalid-fuses");
+
 	/* Aging reference voltage is optional */
 	ctrl->aging_ref_volt = 0;
 	of_property_read_u32(ctrl->dev->of_node, "qcom,cpr-aging-ref-voltage",
@@ -1228,6 +1239,16 @@ int cpr3_parse_common_ctrl_data(struct cpr3_controller *ctrl)
 	ctrl->reset_step_quot_loop_en
 		= of_property_read_bool(ctrl->dev->of_node,
 					"qcom,cpr-reset-step-quot-loop-en");
+
+	/*
+	 * Configure CPR controller to not consider MID/DN recommendations
+	 * from other thread when all sensors mapped to a thread collapsed
+	 * in a multi-thread configuration.
+	 */
+	if (ctrl->thread_count > 1)
+		ctrl->thread_has_always_vote_en
+			= of_property_read_bool(ctrl->dev->of_node,
+					"qcom,cpr-thread-has-always-vote-en");
 
 	/*
 	 * Regulator device handles are not necessary for CPRh controllers
@@ -2302,8 +2323,8 @@ static bool _cpr3_adjust_target_quotients(struct cpr3_regulator *vreg,
 					ro_scale[i * CPR3_RO_COUNT + j],
 					volt_adjust[i]);
 				if (quot_adjust) {
-					prev_quot = vreg->corner[i]
-						.target_quot[j];
+					prev_quot = vreg->corner[i].
+							target_quot[j];
 					vreg->corner[i].target_quot[j]
 						+= quot_adjust;
 					cpr3_debug(vreg, "adjusted corner %d RO%d target quot %s: %u --> %u (%d uV)\n",
