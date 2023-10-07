@@ -87,6 +87,9 @@
 				<&apps_iommu 0x828 0x01>,
 				<&apps_iommu 0x82c 0x01>,
 				<&apps_iommu 0x821 0x10>;
+			qcom,iommu-dma-addr-pool =<0x79000000 0x50000000
+                                0xa1000000 0xc9000000>;
+			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0xfff>;
 			virtual-addr-pool = <0x79000000 0x50000000
 				0xa1000000 0xc9000000>;
@@ -101,9 +104,12 @@
 				<&apps_iommu 0x90e 0x0>,
 				<&apps_iommu 0x926 0x0>,
 				<&apps_iommu 0x929 0x2>;
+			qcom,iommu-dma-addr-pool = <0x51000000 0x28000000>;
+			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0x241>;
 			virtual-addr-pool = <0x51000000 0x28000000>;
 			qcom,secure-context-bank;
+			qcom,iommu-vmid = <0x9>; /*VMID_CP_BITSTREAM*/
 		};
 
 		secure_pixel_cb {
@@ -112,9 +118,12 @@
 			iommus = <&apps_iommu 0x904 0x8>,
 				<&apps_iommu 0x910 0x0>,
 				<&apps_iommu 0x92c 0x0>;
+			qcom,iommu-dma-addr-pool = <0x29000000 0x28000000>;
+			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0x106>;
 			virtual-addr-pool = <0x29000000 0x28000000>;
 			qcom,secure-context-bank;
+			qcom,iommu-vmid = <0xA>; /*VMID_CP_PIXEL*/
 		};
 
 		secure_non_pixel_cb {
@@ -124,9 +133,12 @@
 				<&apps_iommu 0x905 0xa>,
 				<&apps_iommu 0x925 0x8>,
 				<&apps_iommu 0x928 0x0>;
+			qcom,iommu-dma-addr-pool = <0x1000000 0x28000000>;
+			qcom,iommu-faults = "non-fatal";
 			buffer-types = <0x480>;
 			virtual-addr-pool = <0x1000000 0x28000000>;
 			qcom,secure-context-bank;
+			qcom,iommu-vmid = <0xB>; /*VMID_CP_NON_PIXEL*/
 		};
 
 		/* Buses */
