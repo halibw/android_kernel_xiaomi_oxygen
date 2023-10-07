@@ -187,10 +187,15 @@
 		smmu_mdp_unsec: qcom,smmu_mdp_unsec_cb {
 			compatible = "qcom,smmu_mdp_unsec";
 			iommus = <&apps_iommu 0xC00 0>; /* For NS ctx bank */
+			qcom,iommu-dma-addr-pool = <0x08000000 0xF8000000>;
+			qcom,iommu-earlymap; /* for cont-splash */
 		};
 		smmu_mdp_sec: qcom,smmu_mdp_sec_cb {
 			compatible = "qcom,smmu_mdp_sec";
 			iommus = <&apps_iommu 0xC01 0>; /* For SEC Ctx Bank */
+			qcom,iommu-dma-addr-pool = <0x08000000 0xF8000000>;
+			qcom,secure-context-bank;
+			qcom,iommu-vmid = <0x11>; /*VMID_CP_SEC_DISPLAY*/
 		};
 
 		mdss_fb0: qcom,mdss_fb_primary {
