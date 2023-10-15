@@ -13,8 +13,8 @@
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
-#include <dt-bindings/clock/audio-ext-clk.h>
-#include <sound/q6afe-v2.h>
+#include <dt-bindings/clock/msm-clocks-8996.h>
+#include <dsp/q6afe-v2.h>
 #include "audio-ext-clk-up.h"
 
 struct pinctrl_info {
@@ -175,7 +175,6 @@ static struct audio_ext_ap_clk2 audio_ap_clk2 = {
 static struct clk_lookup audio_ref_clock[] = {
 	CLK_LIST(audio_ap_clk),
 	CLK_LIST(audio_pmi_clk),
-	CLK_LIST(audio_pmi_lnbb_clk),
 	CLK_LIST(audio_ap_clk2),
 };
 

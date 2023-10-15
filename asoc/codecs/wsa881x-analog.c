@@ -55,6 +55,7 @@ struct wsa881x_pdata {
 	bool regmap_flag;
 	bool wsa_active;
 	int index;
+	int (*enable_mclk)(struct snd_soc_card *, bool);
 	struct wsa881x_tz_priv tz_pdata;
 	struct clk *wsa_mclk;
 	int bg_cnt;
@@ -1038,6 +1039,7 @@ static int wsa881x_startup(struct wsa881x_pdata *pdata)
 static int wsa881x_shutdown(struct wsa881x_pdata *pdata)
 {
 	int ret = 0;
+        struct snd_soc_card *card = pdata->component->card;
 
 	pr_debug("%s(): wsa shutdown, enable_cnt:%d\n", __func__,
 					pdata->enable_cnt);
@@ -1050,8 +1052,17 @@ static int wsa881x_shutdown(struct wsa881x_pdata *pdata)
 		return ret;
 	}
 
-	if (__clk_is_enabled(pdata->wsa_mclk))
-		clk_disable_unprepare(pdata->wsa_mclk);
+	if (pdata->enable_mclk) {
+                ret = pdata->enable_mclk(card, false);
+                if (ret < 0) {
+                        pr_err("%s: mclk disable failed %d\n",
+                                __func__, ret);
+                        return ret;
+                }
+        }
+
+	/*if (__clk_is_enabled(pdata->wsa_mclk))
+		clk_disable_unprepare(pdata->wsa_mclk);*/
 
 	ret = msm_cdc_pinctrl_select_sleep_state(pdata->wsa_clk_gpio_p);
 	if (ret) {
