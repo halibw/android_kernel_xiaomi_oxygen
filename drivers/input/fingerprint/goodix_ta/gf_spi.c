@@ -73,7 +73,7 @@ static int SPIDEV_MAJOR;
 static DECLARE_BITMAP(minors, N_SPI_MINORS);
 static LIST_HEAD(device_list);
 static DEFINE_MUTEX(device_list_lock);
-static struct wakeup_source fp_wakelock;
+static struct wakeup_source *fp_wakelock;
 static struct gf_dev gf;
 
 struct gf_key_map maps[] = {
@@ -498,7 +498,6 @@ static long gf_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 
 static void notification_work(struct work_struct *work)
 {
-	mdss_prim_panel_fb_unblank(FP_UNLOCK_REJECTION_TIMEOUT);
 	pr_debug("unblank\n");
 }
 
@@ -510,7 +509,7 @@ static irqreturn_t gf_irq(int irq, void *handle)
 	uint32_t key_input = 0;
 	temp[0] = GF_NET_EVENT_IRQ;
 	pr_debug("%s enter\n", __func__);
-	__pm_wakeup_event(&fp_wakelock, msecs_to_jiffies(WAKELOCK_HOLD_TIME));
+	__pm_wakeup_event(fp_wakelock, msecs_to_jiffies(WAKELOCK_HOLD_TIME));
 	sendnlmsg(temp);
 	if ((gf_dev->wait_finger_down == true) && (gf_dev->device_available == 1) && (gf_dev->fb_black == 1)) {
 		key_input = KEY_RIGHT;
@@ -795,7 +794,7 @@ static int gf_probe(struct platform_device *pdev)
 
 	gf_dev->irq = gf_irq_num(gf_dev);
 
-	wakeup_source_init(&fp_wakelock, "fp_wakelock");
+	fp_wakelock = wakeup_source_register(NULL, "fp_wakelock");
 	pr_info("version V%d.%d.%02d\n", VER_MAJOR, VER_MINOR, PATCH_LEVEL);
 
 	return status;
@@ -833,7 +832,7 @@ static int gf_remove(struct platform_device *pdev)
 {
 	struct gf_dev *gf_dev = &gf;
 
-	wakeup_source_trash(&fp_wakelock);
+	wakeup_source_unregister(fp_wakelock);
 	/* make sure ops on existing fds can abort cleanly */
 	if (gf_dev->irq)
 		free_irq(gf_dev->irq, gf_dev);
