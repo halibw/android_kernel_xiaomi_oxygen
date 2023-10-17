@@ -87,7 +87,7 @@ static void gpio13_work(struct work_struct *work)
 	wake_up_interruptible(&gdata->wait);
 }
 
-static void gpio13_timer(unsigned long data)
+static void gpio13_timer(struct timer_list *data)
 {
 	struct gpio13_data *gdata = (struct gpio13_data *)data;
 	schedule_work(&gdata->work);
@@ -175,7 +175,7 @@ static int gpio13_probe(struct platform_device *pdev)
 	}
 	gdata->dev = dev;
 	INIT_WORK(&gdata->work, gpio13_work);
-	setup_timer(&gdata->timer, gpio13_timer, (unsigned long)gdata);
+	timer_setup(&gdata->timer, gpio13_timer, 0);
 	init_waitqueue_head(&gdata->wait);
 	gdata->readable = true;
 
