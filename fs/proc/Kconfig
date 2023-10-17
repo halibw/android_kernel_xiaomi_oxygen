@@ -103,3 +103,8 @@ config PROC_UID
 	depends on PROC_FS && RT_MUTEXES
 	help
 	Provides aggregated per-uid information under /proc/uid.
+
+config EXT_HWINFO
+	bool "/proc/hwinfo support"
+	help
+	This is optional and is used to get LCD or Fingerprint hardware information.
