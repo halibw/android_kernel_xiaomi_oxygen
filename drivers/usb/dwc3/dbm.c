@@ -1,6 +1,15 @@
-// SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012-2015, 2017-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2015, 2017 The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
  */
 
 #include <linux/platform_device.h>
@@ -11,10 +20,10 @@
 
 #include "dbm.h"
 
-/* USB DBM Hardware registers */
-
-#define DBM_REG_OFFSET		0xF8000
-
+/**
+*  USB DBM Hardware registers.
+*
+*/
 enum dbm_reg {
 	DBM_EP_CFG,
 	DBM_DATA_FIFO,
@@ -50,7 +59,9 @@ struct dbm_reg_data {
 struct dbm {
 	void __iomem *base;
 	const struct dbm_reg_data *reg_table;
-	struct device *mdwc_dev;
+
+	struct device		*dev;
+	struct list_head	head;
 
 	int dbm_num_eps;
 	u8 ep_num_mapping[DBM_1_5_NUM_EP];
@@ -103,6 +114,8 @@ static const struct dbm_reg_data dbm_1_5_regtable[] = {
 	[DBM_DATA_FIFO_ADDR_EN]	= { 0x0200, 0x0 },
 	[DBM_DATA_FIFO_SIZE_EN]	= { 0x0204, 0x0 },
 };
+
+static LIST_HEAD(dbm_list);
 
 /**
  * Write register masked field with debug info.
@@ -528,37 +541,103 @@ bool dbm_l1_lpm_interrupt(struct dbm *dbm)
 	return !dbm->is_1p4;
 }
 
-struct dbm *dwc3_init_dbm(struct device *dev, void __iomem *base)
+static const struct of_device_id msm_dbm_id_table[] = {
+	{ .compatible = "qcom,usb-dbm-1p4", .data = &dbm_1_4_regtable },
+	{ .compatible = "qcom,usb-dbm-1p5", .data = &dbm_1_5_regtable },
+	{ },
+};
+MODULE_DEVICE_TABLE(of, msm_dbm_id_table);
+
+static int msm_dbm_probe(struct platform_device *pdev)
 {
-	const char *dbm_ver;
-	int ret;
+	struct device_node *node = pdev->dev.of_node;
+	const struct of_device_id *match;
 	struct dbm *dbm;
+	struct resource *res;
+
+	dbm = devm_kzalloc(&pdev->dev, sizeof(*dbm), GFP_KERNEL);
+	if (!dbm)
+		return -ENOMEM;
+
+	match = of_match_node(msm_dbm_id_table, node);
+	if (!match) {
+		dev_err(&pdev->dev, "Unsupported DBM module\n");
+		return -ENODEV;
+	}
+	dbm->reg_table = match->data;
+
+	if (!strcmp(match->compatible, "qcom,usb-dbm-1p4")) {
+		dbm->dbm_num_eps = DBM_1_4_NUM_EP;
+		dbm->is_1p4 = true;
+	} else {
+		dbm->dbm_num_eps = DBM_1_5_NUM_EP;
+	}
+
+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	if (!res) {
+		dev_err(&pdev->dev, "missing memory base resource\n");
+		return -ENODEV;
+	}
+
+	dbm->base = devm_ioremap_nocache(&pdev->dev, res->start,
+		resource_size(res));
+	if (!dbm->base) {
+		dev_err(&pdev->dev, "ioremap failed\n");
+		return -ENOMEM;
+	}
+
+	dbm->dbm_reset_ep_after_lpm = of_property_read_bool(node,
+			"qcom,reset-ep-after-lpm-resume");
+
+	dbm->dev = &pdev->dev;
+
+	platform_set_drvdata(pdev, dbm);
+
+	list_add_tail(&dbm->head, &dbm_list);
+
+	return 0;
+}
+
+static struct platform_driver msm_dbm_driver = {
+	.probe		= msm_dbm_probe,
+	.driver = {
+		.name	= "msm-usb-dbm",
+		.of_match_table = of_match_ptr(msm_dbm_id_table),
+	},
+};
+
+module_platform_driver(msm_dbm_driver);
+
+static struct dbm *of_usb_find_dbm(struct device_node *node)
+{
+	struct dbm  *dbm;
+
+	list_for_each_entry(dbm, &dbm_list, head) {
+		if (node != dbm->dev->of_node)
+			continue;
+		return dbm;
+	}
+	return ERR_PTR(-ENODEV);
+}
+
+struct dbm *usb_get_dbm_by_phandle(struct device *dev, const char *phandle)
+{
+	struct device_node *node;
 
 	if (!dev->of_node) {
 		dev_dbg(dev, "device does not have a device node entry\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	dbm = devm_kzalloc(dev, sizeof(*dbm), GFP_KERNEL);
-	if (!dbm)
-		return ERR_PTR(-ENOMEM);
-
-	ret = of_property_read_string(dev->of_node, "qcom,dbm-version",
-			&dbm_ver);
-	if (!ret && !strcmp(dbm_ver, "1.4")) {
-		dbm->reg_table = dbm_1_4_regtable;
-		dbm->dbm_num_eps = DBM_1_4_NUM_EP;
-		dbm->is_1p4 = true;
-	} else {
-		/* default to v1.5 register layout */
-		dbm->reg_table = dbm_1_5_regtable;
-		dbm->dbm_num_eps = DBM_1_5_NUM_EP;
+	node = of_parse_phandle(dev->of_node, phandle, 0);
+	if (!node) {
+		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
+			dev->of_node->full_name);
+		return ERR_PTR(-ENODEV);
 	}
 
-	dbm->base = base + DBM_REG_OFFSET;
-	dbm->mdwc_dev = dev;
-	dbm->dbm_reset_ep_after_lpm = of_property_read_bool(dev->of_node,
-			"qcom,reset-ep-after-lpm-resume");
-
-	return dbm;
+	return of_usb_find_dbm(node);
 }
+
+MODULE_DESCRIPTION("MSM USB DBM driver");
+MODULE_LICENSE("GPL v2");
