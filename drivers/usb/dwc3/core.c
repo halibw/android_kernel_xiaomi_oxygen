@@ -77,6 +77,7 @@ static int dwc3_get_dr_mode(struct dwc3 *dwc)
 			dwc->dr_mode = USB_DR_MODE_OTG;
 	}
 
+	dwc->is_drd = 0;
 	mode = dwc->dr_mode;
 	hw_mode = DWC3_GHWPARAMS0_MODE(dwc->hwparams.hwparams0);
 
@@ -120,6 +121,9 @@ static int dwc3_get_dr_mode(struct dwc3 *dwc)
 		dwc->dr_mode = mode;
 	}
 
+	if (dwc->dr_mode == USB_DR_MODE_OTG)
+                dwc->is_drd = 1;
+
 	return 0;
 }
 
@@ -131,6 +135,33 @@ void dwc3_set_prtcap(struct dwc3 *dwc, u32 mode)
 	reg &= ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
 	reg |= DWC3_GCTL_PRTCAPDIR(mode);
 	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+
+	reg |= DWC3_GCTL_U2RSTECN;
+	reg &= ~(DWC3_GCTL_SOFITPSYNC);
+	reg &= ~(DWC3_GCTL_PWRDNSCALEMASK);
+	reg |= DWC3_GCTL_PWRDNSCALE(2);
+	reg |= DWC3_GCTL_U2EXIT_LFPS;
+	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+
+	if (mode == DWC3_GCTL_PRTCAP_OTG || mode == DWC3_GCTL_PRTCAP_HOST) {
+		/*
+		 * Allow ITP generated off of ref clk based counter instead
+		 * of UTMI/ULPI clk based counter, when superspeed only is
+		 * active so that UTMI/ULPI PHY can be suspened.
+		 *
+		 * Starting with revision 2.50A, GFLADJ_REFCLK_LPM_SEL is used
+		 * instead.
+		 */
+		if (dwc->revision < DWC3_REVISION_250A) {
+			reg = dwc3_readl(dwc->regs, DWC3_GCTL);
+			reg |= DWC3_GCTL_SOFITPSYNC;
+			dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+		} else {
+			reg = dwc3_readl(dwc->regs, DWC3_GFLADJ);
+			reg |= DWC3_GFLADJ_REFCLK_LPM_SEL;
+			dwc3_writel(dwc->regs, DWC3_GFLADJ, reg);
+		}
+	}
 
 	dwc->current_dr_role = mode;
 }
@@ -1250,6 +1281,11 @@ static void dwc3_get_properties(struct dwc3 *dwc)
 	dwc->maximum_speed = usb_get_maximum_speed(dev);
 	dwc->max_hw_supp_speed = dwc->maximum_speed;
 	dwc->dr_mode = usb_get_dr_mode(dev);
+	if (dwc->dr_mode == USB_DR_MODE_UNKNOWN) {
+                dwc->dr_mode = USB_DR_MODE_OTG;
+                dwc->is_drd = 1;
+        }
+
 	dwc->hsphy_mode = of_usb_get_phy_mode(dev->of_node);
 
 	dwc->sysdev_is_parent = device_property_read_bool(dev,
