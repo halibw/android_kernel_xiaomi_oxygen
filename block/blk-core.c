@@ -2131,6 +2131,7 @@ out_unlock:
 
 static void handle_bad_sector(struct bio *bio, sector_t maxsector)
 {
+#ifndef CONFIG_MACH_XIAOMI_OXYGEN
 	char b[BDEVNAME_SIZE];
 
 	printk(KERN_INFO "attempt to access beyond end of device\n");
@@ -2138,6 +2139,7 @@ static void handle_bad_sector(struct bio *bio, sector_t maxsector)
 			bio_devname(bio, b), bio->bi_opf,
 			(unsigned long long)bio_end_sector(bio),
 			(long long)maxsector);
+#endif
 }
 
 #ifdef CONFIG_FAIL_MAKE_REQUEST
