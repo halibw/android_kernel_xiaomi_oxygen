@@ -1565,16 +1565,6 @@ config SERIAL_OWL_CONSOLE
 	  Say 'Y' here if you wish to use Actions Semiconductor S500/S900 UART
 	  as the system console.
 
-config SERIAL_MSM_SMD
-	bool "Enable tty device interface for some SMD ports"
-	default n
-	depends on MSM_SMD
-	help
-	  This driver provides the interface for the userspace clients
-	  to communicate over smd via device nodes. This enable the
-	  usersapce clients to read and write to some streaming SMD ports
-	  via tty device interface for MSM chipset.
-
 endmenu
 
 config SERIAL_MCTRL_GPIO
