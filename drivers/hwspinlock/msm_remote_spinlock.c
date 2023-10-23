@@ -20,7 +20,7 @@
 #include <linux/msm_remote_spinlock.h>
 #include <linux/slab.h>
 
-#include <soc/qcom/smem.h>
+#include <linux/soc/qcom/smem.h>
 
 /**
  * The local processor (APPS) is PID 0, but because 0 is reserved for an empty
@@ -475,15 +475,15 @@ void _remote_spin_release_all(uint32_t pid)
 
 static int remote_spinlock_init_address_smem(int id, _remote_spinlock_t *lock)
 {
+	size_t size;
 	_remote_spinlock_t spinlock_start;
 
 	if (id >= SMEM_SPINLOCK_COUNT)
 		return -EINVAL;
 
-	spinlock_start = smem_find(SMEM_SPINLOCK_ARRAY,
+	spinlock_start = qcom_smem_get(QCOM_SMEM_HOST_ANY,
 				    SMEM_SPINLOCK_ARRAY_SIZE,
-				    0,
-				    SMEM_ANY_HOST_FLAG);
+				    &size);
 	if (spinlock_start == NULL)
 		return -ENXIO;
 
