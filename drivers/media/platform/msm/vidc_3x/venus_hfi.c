@@ -28,12 +28,8 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <soc/qcom/scm.h>
-#ifdef CONFIG_MSM_SMEM
-#include <soc/qcom/smem.h>
-#else
 #include <soc/qcom/socinfo.h>
 #include <linux/soc/qcom/smem.h>
-#endif
 #include <soc/qcom/subsystem_restart.h>
 #include "hfi_packetization.h"
 #include "msm_vidc_debug.h"
@@ -4380,11 +4376,7 @@ static int venus_hfi_get_fw_info(void *dev, struct hal_fw_info *fw_info)
 {
 	int i = 0, j = 0;
 	struct venus_hfi_device *device = dev;
-#ifdef CONFIG_MSM_SMEM
-	u32 smem_block_size = 0;
-#else
 	size_t smem_block_size = 0;
-#endif
 	u8 *smem_table_ptr;
 	char version[VENUS_VERSION_LENGTH] = "";
 	const u32 smem_image_index_venus = 14 * 128;
@@ -4398,14 +4390,9 @@ static int venus_hfi_get_fw_info(void *dev, struct hal_fw_info *fw_info)
 
 	mutex_lock(&device->lock);
 
-#ifdef CONFIG_MSM_SMEM
-	smem_table_ptr = smem_get_entry(SMEM_IMAGE_VERSION_TABLE,
-                        &smem_block_size, 0, SMEM_ANY_HOST_FLAG);
-#else
 	smem_table_ptr = qcom_smem_get(QCOM_SMEM_HOST_ANY,
 					SMEM_IMAGE_VERSION_TABLE,
 					&smem_block_size);
-#endif
 	if (smem_table_ptr &&
 			((smem_image_index_venus +
 			  VENUS_VERSION_LENGTH) <= smem_block_size))

@@ -29,11 +29,7 @@
 #include <linux/dma-mapping.h>
 #include <soc/qcom/subsystem_restart.h>
 #include <soc/qcom/ramdump.h>
-#ifdef CONFIG_MSM_SMEM
-#include <soc/qcom/smem.h>
-#else
 #include <linux/soc/qcom/smem.h>
-#endif
 #include <linux/soc/qcom/smem_state.h>
 
 #include "peripheral-loader.h"
@@ -48,23 +44,14 @@
 
 static void log_modem_sfr(struct modem_data *drv)
 {
-#ifdef CONFIG_MSM_SMEM
-	u32 size;
-#else
 	size_t size;
-#endif
 	char *smem_reason, reason[MAX_SSR_REASON_LEN];
 
 	if (drv->q6->smem_id == -1)
 		return;
 
-#ifdef CONFIG_MSM_SMEM
-	smem_reason = smem_get_entry_no_rlock(SMEM_SSR_REASON_MSS0, &size, 0,
-                                                        SMEM_ANY_HOST_FLAG);
-#else
 	smem_reason = qcom_smem_get(QCOM_SMEM_HOST_ANY, drv->q6->smem_id,
 								&size);
-#endif
 	if (IS_ERR(smem_reason) || !size) {
 		pr_err("modem SFR: (unknown, qcom_smem_get failed).\n");
 		return;
@@ -74,7 +61,7 @@ static void log_modem_sfr(struct modem_data *drv)
 		return;
 	}
 
-	strlcpy(reason, smem_reason, min(size, MAX_SSR_REASON_LEN));
+	strlcpy(reason, smem_reason, min(size, (size_t)MAX_SSR_REASON_LEN));
 	pr_err("modem subsystem failure reason: %s.\n", reason);
 }
 

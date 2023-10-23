@@ -17,12 +17,8 @@
 #include <linux/list.h>
 #include <linux/interrupt.h>
 #include <linux/hash.h>
-#ifdef CONFIG_MSM_SMEM
-#include <soc/qcom/smem.h>
-#else
 #include <linux/soc/qcom/smem.h>
 #include <soc/qcom/socinfo.h>
-#endif
 #include "vidc_hfi_helper.h"
 #include "vidc_hfi_io.h"
 #include "msm_vidc_debug.h"
@@ -1945,11 +1941,7 @@ static void hfi_process_sys_get_prop_image_version(
 		struct hfi_msg_sys_property_info_packet *pkt)
 {
 	int i = 0;
-#ifdef CONFIG_MSM_SMEM
-	u32 smem_block_size = 0;
-#else
 	size_t smem_block_size = 0;
-#endif
 	u8 *smem_table_ptr;
 	char version[256];
 	const u32 version_string_size = 128;
@@ -1980,13 +1972,8 @@ static void hfi_process_sys_get_prop_image_version(
 	version[i] = '\0';
 	dprintk(VIDC_DBG, "F/W version: %s\n", version);
 
-#ifdef CONFIG_MSM_SMEM
-	smem_table_ptr = smem_get_entry(SMEM_IMAGE_VERSION_TABLE,
-                        &smem_block_size, 0, SMEM_ANY_HOST_FLAG);
-#else
 	smem_table_ptr = qcom_smem_get(QCOM_SMEM_HOST_ANY,
 				SMEM_IMAGE_VERSION_TABLE, &smem_block_size);
-#endif
 	if ((smem_image_index_venus + version_string_size) <= smem_block_size &&
 			smem_table_ptr)
 		memcpy(smem_table_ptr + smem_image_index_venus,

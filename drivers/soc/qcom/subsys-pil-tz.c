@@ -22,11 +22,7 @@
 #include <soc/qcom/ramdump.h>
 #include <soc/qcom/scm.h>
 
-#ifdef CONFIG_MSM_SMEM
-#include <soc/qcom/smem.h>
-#else
 #include <linux/soc/qcom/smem.h>
-#endif
 #include <linux/soc/qcom/smem_state.h>
 
 #include "peripheral-loader.h"
@@ -808,22 +804,14 @@ static struct pil_reset_ops pil_ops_trusted = {
 
 static void log_failure_reason(const struct pil_tz_data *d)
 {
-#ifndef CONFIG_MSM_SMEM
 	size_t size;
-#else
-	u32 size;
-#endif
 	char *smem_reason, reason[MAX_SSR_REASON_LEN];
 	const char *name = d->subsys_desc.name;
 
 	if (d->smem_id == -1)
 		return;
-#ifdef CONFIG_MSM_SMEM
-	smem_reason = smem_get_entry_no_rlock(d->smem_id, &size, 0,
-                                                        SMEM_ANY_HOST_FLAG);
-#else
+
 	smem_reason = qcom_smem_get(QCOM_SMEM_HOST_ANY, d->smem_id, &size);
-#endif
 	if (IS_ERR(smem_reason) || !size) {
 		pr_err("%s SFR: (unknown, qcom_smem_get failed).\n",
 									name);
@@ -833,11 +821,8 @@ static void log_failure_reason(const struct pil_tz_data *d)
 		pr_err("%s SFR: (unknown, empty string found).\n", name);
 		return;
 	}
-#ifdef CONFIG_MSM_SMEM
-	strlcpy(reason, smem_reason, min(size, MAX_SSR_REASON_LEN));
-#else
+
 	strlcpy(reason, smem_reason, min(size, (size_t)MAX_SSR_REASON_LEN));
-#endif
 	pr_err("%s subsystem failure reason: %s.\n", name, reason);
 }
 
