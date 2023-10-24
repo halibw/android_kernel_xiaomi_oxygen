@@ -2026,6 +2026,30 @@ struct afe_rtac_user_data_get_v3 {
 } __packed;
 
 #define AFE_PORT_CMD_SET_PARAM_V2	0x000100EF
+struct afe_port_param_data_v2 {
+        u32 module_id;
+/* ID of the module to be configured.
+ * Supported values: Valid module ID
+ */
+
+u32 param_id;
+/* ID of the parameter corresponding to the supported parameters
+ * for the module ID.
+ * Supported values: Valid parameter ID
+ */
+
+u16 param_size;
+/* Actual size of the data for the
+ * module_id/param_id pair. The size is a
+ * multiple of four bytes.
+ * Supported values: > 0
+ */
+
+u16 reserved;
+/* This field must be set to zero.
+ */
+} __packed;
+
 struct afe_port_cmd_set_param_v2 {
 	/* APR Header */
 	struct apr_hdr apr_hdr;
@@ -5365,6 +5389,11 @@ struct afe_port_cmd_get_param_v2 {
 
 	/* The parameter ID of the parameter data requested */
 	u32 param_id;
+
+	/* Legacy address */
+	u32 payload_address_lsw;
+	u32 payload_address_msw;
+	u32 mem_map_handle;
 
 	/* The header information for the parameter data */
 	struct param_hdr_v1 param_hdr;

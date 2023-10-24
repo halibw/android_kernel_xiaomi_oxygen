@@ -31686,7 +31686,7 @@ static int msm_routing_probe(struct snd_soc_component *component)
 				      ARRAY_SIZE(mclk_src_controls));
 #ifdef SMART_AMP
 	/* SMART_AMP start */
-	snd_soc_add_platform_controls(platform, smartamp_filter_mixer_controls, ARRAY_SIZE(smartamp_filter_mixer_controls));
+	snd_soc_add_component_controls(component, smartamp_filter_mixer_controls, ARRAY_SIZE(smartamp_filter_mixer_controls));
 	/*SMART_AMP end */
 #endif
 
