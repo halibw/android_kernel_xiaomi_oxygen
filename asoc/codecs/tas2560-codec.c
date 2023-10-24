@@ -83,7 +83,7 @@ static int tas2560_mix_post_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_component *component =
-			snd_soc_kcontrol_component(kcontrol);
+			snd_soc_dapm_to_component(w->dapm);
 	struct tas2560_priv *pTAS2560 = snd_soc_component_get_drvdata(component);
 	enum channel mchannel;
 
