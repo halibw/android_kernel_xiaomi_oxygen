@@ -4359,6 +4359,12 @@ int msm_isp_update_axi_stream(struct vfe_device *vfe_dev, void *arg)
 			return -EINVAL;
 		}
 		mutex_lock(&vfe_dev->buf_mgr->lock);
+		if (stream_info == NULL) {
+			pr_err_ratelimited("%s: stream_info is NULL\n",
+				__func__);
+			rc = -EINVAL;
+			break;
+		}
 		rc = msm_isp_request_frame(vfe_dev, stream_info,
 			req_frm->user_stream_id,
 			req_frm->frame_id,
