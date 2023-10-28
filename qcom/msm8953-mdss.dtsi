@@ -16,7 +16,7 @@
 		reg = <0x01a00000 0x90000>,
 		      <0x01ab0000 0x1040>;
 		reg-names = "mdp_phys", "vbif_phys";
-		interrupts = <0 72 0>;
+		interrupts = <0 72 IRQ_TYPE_LEVEL_HIGH>;
 		vdd-supply = <&gdsc_mdss>;
 
 		/* Bus Scale Settings */

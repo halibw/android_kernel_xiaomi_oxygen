@@ -19,7 +19,7 @@
 		reg-names = "vidc", "efuse", "efuse2";
 		qcom,platform-version = <0x00180000 0x13>;
 		qcom,capability-version = <0x00002000 0x0d>;
-		interrupts = <0 44 0>;
+		interrupts = <0 44 IRQ_TYPE_LEVEL_HIGH>;
 		/* Regulators */
 		venus-supply = <&gdsc_venus>;
 		venus-core0-supply = <&gdsc_venus_core0>;
