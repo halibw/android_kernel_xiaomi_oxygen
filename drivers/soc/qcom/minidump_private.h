@@ -7,7 +7,7 @@
 #define __MINIDUMP_PRIVATE_H
 
 #define MD_REVISION		1
-#define SBL_MINIDUMP_SMEM_ID	602
+#define SBL_MINIDUMP_SMEM_ID	510
 #define MAX_NUM_OF_SS		10
 #define MD_SS_HLOS_ID		0
 #define SMEM_ENTRY_SIZE		40
