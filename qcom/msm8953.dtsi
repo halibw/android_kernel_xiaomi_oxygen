@@ -418,7 +418,8 @@
 			<0x4a9000 0x1000>;
 		reg-names = "tsens_srot_physical",
 					"tsens_tm_physical";
-		interrupts = <0 184 0>, <0 314 0>;
+		interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>,
+				<0 314 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "tsens-upper-lower", "tsens-critical";
 		#thermal-sensor-cells = <1>;
 	};
@@ -479,7 +480,7 @@
 		reg = <0x720000 0x20000>,
 		      <0x704000 0x20000>;
 		reg-names = "crypto-base","crypto-bam-base";
-		interrupts = <0 207 0>;
+		interrupts = <0 207 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,bam-pipe-pair = <2>;
 		qcom,ce-hw-instance = <0>;
 		qcom,ce-device = <0>;
@@ -512,7 +513,7 @@
 		reg = <0x720000 0x20000>,
 		      <0x704000 0x20000>;
 		reg-names = "crypto-base","crypto-bam-base";
-		interrupts = <0 207 0>;
+		interrupts = <0 207 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,bam-pipe-pair = <1>;
 		qcom,ce-hw-instance = <0>;
 		qcom,ce-device = <0>;
@@ -665,7 +666,7 @@
 		#dma-cells = <4>;
 		compatible = "qcom,sps-dma";
 		reg = <0x7884000 0x1f000>;
-		interrupts = <0 238 0>;
+		interrupts = <0 238 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,summing-threshold = <10>;
 	};
 
@@ -673,7 +674,7 @@
 		#dma-cells = <4>;
 		compatible = "qcom,sps-dma";
 		reg = <0x7ac4000 0x1f000>;
-		interrupts = <0 239 0>;
+		interrupts = <0 239 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,summing-threshold = <10>;
 	};
 
@@ -685,7 +686,8 @@
 		reg = <0x78b7000 0x600>,
 			<0x7884000 0x1f000>;
 		interrupt-names = "spi_irq", "spi_bam_irq";
-		interrupts = <0 97 0>, <0 238 0>;
+		interrupts = <0 97 IRQ_TYPE_LEVEL_HIGH>,
+				<0 238 IRQ_TYPE_LEVEL_HIGH>;
 		spi-max-frequency = <19200000>;
 		pinctrl-names = "spi_default", "spi_sleep";
 		pinctrl-0 = <&spi3_default &spi3_cs0_active>;
@@ -711,7 +713,8 @@
 		reg = <0x7af6000 0x600>,
 			<0x7ac4000 0x1f000>;
 		interrupt-names = "spi_irq", "spi_bam_irq";
-		interrupts = <0 300 0>, <0 239 0>;
+		interrupts = <0 300 IRQ_TYPE_LEVEL_HIGH>,
+				<0 239 IRQ_TYPE_LEVEL_HIGH>;
 		spi-max-frequency = <19200000>;
 		pinctrl-names = "spi_default", "spi_sleep";
 		pinctrl-0 = <&spi6_default &spi6_cs0_active>;
@@ -736,7 +739,7 @@
 		reg-names = "qup_phys_addr";
 		reg = <0x78b5000 0x600>;
 		interrupt-names = "qup_irq";
-		interrupts = <0 95 0>;
+		interrupts = <0 95 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,master-id = <86>;
 		qcom,clk-freq-out = <100000>;
 		qcom,clk-freq-in  = <19200000>;
@@ -761,7 +764,7 @@
 		reg-names = "qup_phys_addr";
 		reg = <0x78b6000 0x600>;
 		interrupt-names = "qup_irq";
-		interrupts = <0 96 0>;
+		interrupts = <0 96 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,clk-freq-out = <400000>;
 		qcom,clk-freq-in  = <19200000>;
 		clock-names = "iface_clk", "core_clk";
@@ -787,7 +790,7 @@
 		reg-names = "qup_phys_addr";
 		reg = <0x78b7000 0x600>;
 		interrupt-names = "qup_irq";
-		interrupts = <0 97 0>;
+		interrupts = <0 97 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,clk-freq-out = <400000>;
 		qcom,clk-freq-in  = <19200000>;
 		clock-names = "iface_clk", "core_clk";
@@ -813,7 +816,7 @@
 		reg-names = "qup_phys_addr";
 		reg = <0x7af5000 0x600>;
 		interrupt-names = "qup_irq";
-		interrupts = <0 299 0>;
+		interrupts = <0 299 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,clk-freq-out = <400000>;
 		qcom,clk-freq-in  = <19200000>;
 		clock-names = "iface_clk", "core_clk";
@@ -838,7 +841,8 @@
 		reg = <0xc140000 0x2c000>,
 		      <0xc104000 0x2a000>;
 		reg-names = "slimbus_physical", "slimbus_bam_physical";
-		interrupts = <0 163 0>, <0 180 0>;
+		interrupts = <0 163 IRQ_TYPE_LEVEL_HIGH>,
+				<0 180 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "slimbus_irq", "slimbus_bam_irq";
 		qcom,apps-ch-pipes = <0x600000>;
 		qcom,ea-pc = <0x200>;
@@ -1464,7 +1468,8 @@
 		compatible = "qcom,msm-watchdog";
 		reg = <0xb017000 0x1000>;
 		reg-names = "wdt-base";
-		interrupts = <0 3 0>, <0 4 0>;
+		interrupts = <0 3 IRQ_TYPE_LEVEL_HIGH>,
+				<0 4 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,bark-time = <11000>;
 		qcom,pet-time = <9360>;
 		qcom,ipi-ping;
@@ -1667,7 +1672,8 @@
 		reg = <0x7803000 0x8000>;
 		interrupt-names = "sdcc_ice_nonsec_level_irq",
 				  "sdcc_ice_sec_level_irq";
-		interrupts = <0 312 0>, <0 313 0>;
+		interrupts = <0 312 IRQ_TYPE_LEVEL_HIGH>,
+				<0 313 IRQ_TYPE_LEVEL_HIGH>;
 		qcom,enable-ice-clk;
 		clock-names = "ice_core_clk_src", "ice_core_clk",
 				"bus_clk", "iface_clk";
@@ -1693,7 +1699,8 @@
 		reg-names = "hc_mem", "core_mem", "cmdq_mem",
 				"tlmm_mem";
 
-		interrupts = <0 123 0>, <0 138 0>;
+		interrupts = <0 123 IRQ_TYPE_LEVEL_HIGH>,
+				<0 138 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "hc_irq", "pwr_irq";
 
 		sdhc-msm-crypto = <&sdcc1_ice>;
@@ -1739,7 +1746,8 @@
 		reg = <0x7864900 0x500>, <0x7864000 0x800>;
 		reg-names = "hc_mem", "core_mem";
 
-		interrupts = <0 125 0>, <0 221 0>;
+		interrupts = <0 125 IRQ_TYPE_LEVEL_HIGH>,
+				<0 221 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "hc_irq", "pwr_irq";
 
 		qcom,bus-width = <4>;
@@ -1890,7 +1898,7 @@
 			compatible = "snps,dwc3";
 			reg = <0x07000000 0xc8d0>;
 			interrupt-parent = <&intc>;
-			interrupts = <0 140 0>;
+			interrupts = <0 140 IRQ_TYPE_LEVEL_HIGH>;
 			usb-phy = <&qusb_phy>, <&ssphy>;
 			tx-fifo-resize;
 			snps,usb3-u1u2-disable;
@@ -1904,7 +1912,7 @@
 			compatible = "qcom,usb-bam-msm";
 			reg = <0x07104000 0x1a934>;
 			interrupt-parent = <&intc>;
-			interrupts = <0 135 0>;
+			interrupts = <0 135 IRQ_TYPE_LEVEL_HIGH>;
 
 			qcom,bam-type = <0>;
 			qcom,usb-bam-fifo-baseaddr = <0x08605000>;
