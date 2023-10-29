@@ -1696,7 +1696,9 @@ static int fts_ts_check_dt(struct device_node *np)
 	int i;
 	int count;
 	struct device_node *node;
+#ifdef CONFIG_DRM
 	struct drm_panel *panel;
+#endif
 
 	count = of_count_phandle_with_args(np, "panel", NULL);
 	if (count <= 0)
