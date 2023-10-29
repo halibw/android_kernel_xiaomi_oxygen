@@ -736,9 +736,9 @@ unsigned char FT5X46_TestItem_WeakShortTest(struct i2c_client *client)
 			iCount++;
 
 			if (i + 1 <= iMaxTx)
-				FOCAL_TEST_PRINT("Tx%02d: %02d (k次),	", i + 1, fGShortResistance[i]);
+				printk(KERN_DEBUG "Tx%02d: %02d\n", i + 1, fGShortResistance[i]);
 			else
-				FOCAL_TEST_PRINT("Rx%02d: %02d (k次),	", i + 1 - iMaxTx, fGShortResistance[i]);
+				printk(KERN_DEBUG "Tx%02d: %02d\n", i + 1 - iMaxTx, fGShortResistance[i]);
 
 			if (iCount % 10 == 0)
 				FOCAL_TEST_PRINT("\n");
@@ -804,9 +804,9 @@ unsigned char FT5X46_TestItem_WeakShortTest(struct i2c_client *client)
 			iCount++;
 
 			if (i + 1 <= iMaxTx)
-				FOCAL_TEST_PRINT("Tx%02d: %02d(k次),	", i + 1, fMShortResistance[i]);
+				printk(KERN_DEBUG "Tx%02d: %02d\n", i + 1, fMShortResistance[i]);
 			else
-				FOCAL_TEST_PRINT("Rx%02d: %02d(k次),	", i + 1 - iMaxTx, fMShortResistance[i]);
+				printk(KERN_DEBUG "Tx%02d: %02d\n", i + 1 - iMaxTx, fMShortResistance[i]);
 
 			if (iCount % 10 == 0)
 				FOCAL_TEST_PRINT("\n");
