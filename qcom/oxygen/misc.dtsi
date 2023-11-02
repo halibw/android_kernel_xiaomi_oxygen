@@ -1,4 +1,7 @@
 /* msm8953-mtp.dtsi */
+
+#include <dt-bindings/leds/common.h>
+
 &soc {
 	gpio_keys {
 		hall_key {
@@ -60,31 +63,18 @@
 	};
 };
 &i2c_2 { /* BLSP2 QUP1 (TAS2560) */
-	aw2013@45 {
+	led-controller@45 {
 		compatible = "awinic,aw2013";
 		reg = <0x45>;
-		vdd-supply = <&pm8953_l10>;
-		vcc-supply = <&pm8953_l5>;
+		vcc-supply = <&pm8953_l10>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 
-		aw2013,white {
-			aw2013,name = "white";
-			aw2013,id = <0>;
-			aw2013,max-brightness = <255>;
-			aw2013,max-current = <1>;
-			aw2013,rise-time-ms = <3>;
-			aw2013,hold-time-ms = <2>;
-			aw2013,fall-time-ms = <3>;
-			aw2013,off-time-ms = <2>;
-		};
-		aw2013,button-backlight {
-			aw2013,name = "button-backlight";
-			aw2013,id = <1>;
-			aw2013,max-brightness = <255>;
-			aw2013,max-current = <1>;
-			aw2013,rise-time-ms = <3>;
-			aw2013,hold-time-ms = <2>;
-			aw2013,fall-time-ms = <3>;
-			aw2013,off-time-ms = <2>;
+		white@0 {
+			reg = <0>;
+			led-max-microamp = <5000>;
+			function = LED_FUNCTION_INDICATOR;
+			color = <LED_COLOR_ID_WHITE>;
 		};
 	};
 };
