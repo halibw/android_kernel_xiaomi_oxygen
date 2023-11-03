@@ -1,6 +1,0 @@
-&firmware {
-	android {
-		/delete-node/ fstab;
-		/delete-node/ vbmeta;
-	};
-};
