@@ -3720,7 +3720,7 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 	}
 
 	if (of_get_property(pdev->dev.of_node, "qcom,usb-dbm", NULL)) {
-		mdwc->dbm = usb_get_dbm_by_phandle(&pdev->dev, "qcom,usb-dbm");
+		mdwc->dbm = dwc3_init_dbm(&pdev->dev, tcsr);
 		if (IS_ERR(mdwc->dbm)) {
 			dev_err(&pdev->dev, "unable to get dbm device\n");
 			ret = -EPROBE_DEFER;
