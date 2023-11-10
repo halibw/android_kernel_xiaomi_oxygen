@@ -80,7 +80,6 @@ extern void unregister_cpu(struct cpu *cpu);
 extern ssize_t arch_cpu_probe(const char *, size_t);
 extern ssize_t arch_cpu_release(const char *, size_t);
 #endif
-struct notifier_block;
 
 /*
  * These states are not related to the core CPU hotplug mechanism. They are
@@ -109,92 +108,19 @@ struct notifier_block;
 
 #ifdef CONFIG_SMP
 extern bool cpuhp_tasks_frozen;
-/* Need to know about CPUs going up/down? */
-#if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE)
-#define cpu_notifier(fn, pri) {					\
-	static struct notifier_block fn##_nb =			\
-		{ .notifier_call = fn, .priority = pri };	\
-	register_cpu_notifier(&fn##_nb);			\
-}
-
-#define __cpu_notifier(fn, pri) {				\
-	static struct notifier_block fn##_nb =			\
-		{ .notifier_call = fn, .priority = pri };	\
-	__register_cpu_notifier(&fn##_nb);			\
-}
-
-extern int register_cpu_notifier(struct notifier_block *nb);
-extern int __register_cpu_notifier(struct notifier_block *nb);
-extern void unregister_cpu_notifier(struct notifier_block *nb);
-extern void __unregister_cpu_notifier(struct notifier_block *nb);
-
-#else /* #if defined(CONFIG_HOTPLUG_CPU) || !defined(MODULE) */
-#define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-#define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-
-static inline int register_cpu_notifier(struct notifier_block *nb)
-{
-	return 0;
-}
-
-static inline int __register_cpu_notifier(struct notifier_block *nb)
-{
-	return 0;
-}
-
-static inline void unregister_cpu_notifier(struct notifier_block *nb)
-{
-}
-
-static inline void __unregister_cpu_notifier(struct notifier_block *nb)
-{
-}
-#endif
-
 int cpu_up(unsigned int cpu);
 void notify_cpu_starting(unsigned int cpu);
 extern void cpu_maps_update_begin(void);
 extern void cpu_maps_update_done(void);
-#define cpu_notifier_register_begin	cpu_maps_update_begin
-#define cpu_notifier_register_done	cpu_maps_update_done
 
 #else	/* CONFIG_SMP */
 #define cpuhp_tasks_frozen	0
-
-#define cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-#define __cpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-
-static inline int register_cpu_notifier(struct notifier_block *nb)
-{
-	return 0;
-}
-
-static inline int __register_cpu_notifier(struct notifier_block *nb)
-{
-	return 0;
-}
-
-static inline void unregister_cpu_notifier(struct notifier_block *nb)
-{
-}
-
-static inline void __unregister_cpu_notifier(struct notifier_block *nb)
-{
-}
 
 static inline void cpu_maps_update_begin(void)
 {
 }
 
 static inline void cpu_maps_update_done(void)
-{
-}
-
-static inline void cpu_notifier_register_begin(void)
-{
-}
-
-static inline void cpu_notifier_register_done(void)
 {
 }
 
@@ -210,12 +136,6 @@ extern int  cpus_read_trylock(void);
 extern void lockdep_assert_cpus_held(void);
 extern void cpu_hotplug_disable(void);
 extern void cpu_hotplug_enable(void);
-#define hotcpu_notifier(fn, pri)	cpu_notifier(fn, pri)
-#define __hotcpu_notifier(fn, pri)	__cpu_notifier(fn, pri)
-#define register_hotcpu_notifier(nb)	register_cpu_notifier(nb)
-#define __register_hotcpu_notifier(nb)	__register_cpu_notifier(nb)
-#define unregister_hotcpu_notifier(nb)	unregister_cpu_notifier(nb)
-#define __unregister_hotcpu_notifier(nb)	__unregister_cpu_notifier(nb)
 void clear_tasks_mm_cpumask(int cpu);
 int cpu_down(unsigned int cpu);
 
@@ -229,13 +149,6 @@ static inline int  cpus_read_trylock(void) { return true; }
 static inline void lockdep_assert_cpus_held(void) { }
 static inline void cpu_hotplug_disable(void) { }
 static inline void cpu_hotplug_enable(void) { }
-#define hotcpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-#define __hotcpu_notifier(fn, pri)	do { (void)(fn); } while (0)
-/* These aren't inline functions due to a GCC bug. */
-#define register_hotcpu_notifier(nb)	({ (void)(nb); 0; })
-#define __register_hotcpu_notifier(nb)	({ (void)(nb); 0; })
-#define unregister_hotcpu_notifier(nb)	({ (void)(nb); })
-#define __unregister_hotcpu_notifier(nb)	({ (void)(nb); })
 #endif	/* !CONFIG_HOTPLUG_CPU */
 
 /* Wrappers which go away once all code is converted */

@@ -4543,59 +4543,6 @@ static void cpr_regulator_set_online_cpus(struct cpr_regulator *cpr_vreg)
 	put_online_cpus();
 }
 
-static int cpr_regulator_cpu_callback(struct notifier_block *nb,
-					    unsigned long action, void *data)
-{
-	struct cpr_regulator *cpr_vreg = container_of(nb, struct cpr_regulator,
-					cpu_notifier);
-	int cpu = (long)data;
-	int prev_online_cpus, rc, i;
-
-	action &= ~CPU_TASKS_FROZEN;
-
-	if (action != CPU_UP_PREPARE && action != CPU_UP_CANCELED
-	    && action != CPU_DEAD)
-		return NOTIFY_OK;
-
-	mutex_lock(&cpr_vreg->cpr_mutex);
-
-	if (cpr_vreg->skip_voltage_change_during_suspend
-	    && cpr_vreg->is_cpr_suspended) {
-		/* Do nothing during system suspend/resume */
-		goto done;
-	}
-
-	prev_online_cpus = cpr_vreg->online_cpus;
-	cpr_regulator_set_online_cpus(cpr_vreg);
-
-	if (action == CPU_UP_PREPARE)
-		for (i = 0; i < cpr_vreg->num_adj_cpus; i++)
-			if (cpu == cpr_vreg->adj_cpus[i]) {
-				cpr_vreg->online_cpus++;
-				break;
-			}
-
-	if (cpr_vreg->online_cpus == prev_online_cpus)
-		goto done;
-
-	cpr_debug(cpr_vreg, "adjusting corner %d quotient for %d cpus\n",
-		cpr_vreg->corner, cpr_vreg->online_cpus);
-
-	cpr_regulator_switch_adj_cpus(cpr_vreg);
-
-	if (cpr_vreg->corner) {
-		rc = cpr_regulator_set_voltage(cpr_vreg->rdev,
-				cpr_vreg->corner, true);
-		if (rc)
-			cpr_err(cpr_vreg, "could not update quotient, rc=%d\n",
-				rc);
-	}
-
-done:
-	mutex_unlock(&cpr_vreg->cpr_mutex);
-	return NOTIFY_OK;
-}
-
 static void cpr_pm_disable(struct cpr_regulator *cpr_vreg, bool disable)
 {
 	u32 reg_val;
@@ -4949,9 +4896,6 @@ static int cpr_init_per_cpu_adjustments(struct cpr_regulator *cpr_vreg,
 	cpr_vreg->skip_voltage_change_during_suspend
 			= of_property_read_bool(dev->of_node,
 				"qcom,cpr-skip-voltage-change-during-suspend");
-
-	cpr_vreg->cpu_notifier.notifier_call = cpr_regulator_cpu_callback;
-	register_hotcpu_notifier(&cpr_vreg->cpu_notifier);
 
 	return rc;
 }
@@ -6115,9 +6059,6 @@ static int cpr_regulator_remove(struct platform_device *pdev)
 		mutex_lock(&cpr_regulator_list_mutex);
 		list_del(&cpr_vreg->list);
 		mutex_unlock(&cpr_regulator_list_mutex);
-
-		if (cpr_vreg->cpu_notifier.notifier_call)
-			unregister_hotcpu_notifier(&cpr_vreg->cpu_notifier);
 
 		atomic_notifier_chain_unregister(&panic_notifier_list,
 			&cpr_vreg->panic_notifier);
