@@ -881,7 +881,6 @@ static void gsi_get_channel_info(struct usb_ep *ep,
 	int last_trb_index = 0;
 	struct dwc3	*dwc = dep->dwc;
 	struct usb_gsi_request *request = ch_info->ch_req;
-	struct dwc3_msm *mdwc = dev_get_drvdata(dwc->dev->parent);
 
 	/* Provide physical USB addresses for DEPCMD and GEVENTCNT registers */
 	ch_info->depcmd_low_addr = (u32)(dwc->reg_phys +
@@ -2205,13 +2204,17 @@ static void dwc3_msm_power_collapse_por(struct dwc3_msm *mdwc)
 		clk_disable_unprepare(mdwc->cfg_ahb_clk);
 	}
 
+	ret = dwc3_core_init(dwc);
+	if (ret)
+		dev_err(mdwc->dev, "%s: dwc3_core init failed (%d)\n",
+							__func__, ret);
+
 	if (!mdwc->init) {
 		dbg_event(0xFF, "dwc3 init",
 				atomic_read(&mdwc->dev->power.usage_count));
 		mdwc->init = true;
 	}
 
-	dwc3_core_init(dwc);
 	/* Re-configure event buffers */
 	dwc3_event_buffers_setup(dwc);
 
