@@ -19,7 +19,7 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/types.h>
-#include <linux/power/qcom/apm.h>
+#include <soc/qcom/apm.h>
 #include <linux/regulator/driver.h>
 
 struct cpr3_controller;

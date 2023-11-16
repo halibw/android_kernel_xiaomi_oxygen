@@ -26,7 +26,7 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/string.h>
-#include <linux/power/qcom/apm.h>
+#include <soc/qcom/apm.h>
 #include <soc/qcom/scm.h>
 
 /*
