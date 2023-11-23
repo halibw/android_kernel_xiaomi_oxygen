@@ -601,7 +601,7 @@ config BPF_KPROBE_OVERRIDE
 	 set a different return value.  This is used for error injection.
 
 config FTRACE_MCOUNT_RECORD
-	def_bool y
+	def_bool n
 	depends on DYNAMIC_FTRACE
 	depends on HAVE_FTRACE_MCOUNT_RECORD
 
