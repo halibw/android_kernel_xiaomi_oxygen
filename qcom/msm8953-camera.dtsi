@@ -28,7 +28,7 @@
 		reg = <0x1b34000 0x1000>,
 			<0x1b00030 0x4>;
 		reg-names = "csiphy", "csiphy_clk_mux";
-		interrupts = <0 78 0>;
+		interrupts = <0 78 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csiphy";
 		clocks = <&clock_gcc clk_gcc_camss_top_ahb_clk>,
 			<&clock_gcc clk_gcc_camss_ispif_ahb_clk>,
@@ -49,7 +49,7 @@
 		reg = <0x1b35000 0x1000>,
 			<0x1b00038 0x4>;
 		reg-names = "csiphy", "csiphy_clk_mux";
-		interrupts = <0 79 0>;
+		interrupts = <0 79 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csiphy";
 		clocks = <&clock_gcc clk_gcc_camss_top_ahb_clk>,
 			<&clock_gcc clk_gcc_camss_ispif_ahb_clk>,
@@ -70,7 +70,7 @@
 		reg = <0x1b36000 0x1000>,
 			<0x1b00040 0x4>;
 		reg-names = "csiphy", "csiphy_clk_mux";
-		interrupts = <0 315 0>;
+		interrupts = <0 315 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csiphy";
 		clocks = <&clock_gcc clk_gcc_camss_top_ahb_clk>,
 			<&clock_gcc clk_gcc_camss_ispif_ahb_clk>,
@@ -90,7 +90,7 @@
 		compatible = "qcom,csid-v3.5.1", "qcom,csid";
 		reg = <0x1b30000 0x400>;
 		reg-names = "csid";
-		interrupts = <0 51 0>;
+		interrupts = <0 51 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csid";
 		qcom,csi-vdd-voltage = <1225000>;
 		qcom,mipi-csi-vdd-supply = <&pm8953_s3>;
@@ -117,7 +117,7 @@
 		compatible = "qcom,csid-v3.5.1", "qcom,csid";
 		reg = <0x1b30400 0x400>;
 		reg-names = "csid";
-		interrupts = <0 52 0>;
+		interrupts = <0 52 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csid";
 		qcom,csi-vdd-voltage = <1225000>;
 		qcom,mipi-csi-vdd-supply = <&pm8953_s3>;
@@ -144,7 +144,7 @@
 		compatible = "qcom,csid-v3.5.1", "qcom,csid";
 		reg = <0x1b30800 0x400>;
 		reg-names = "csid";
-		interrupts = <0 153 0>;
+		interrupts = <0 153 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csid";
 		qcom,csi-vdd-voltage = <1225000>;
 		qcom,mipi-csi-vdd-supply = <&pm8953_s3>;
@@ -171,7 +171,7 @@
 		reg = <0x1b31000 0x500>,
 			<0x1b00020 0x10>;
 		reg-names = "ispif", "csi_clk_mux";
-		interrupts = <0 55 0>;
+		interrupts = <0 55 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "ispif";
 		qcom,num-isps = <0x2>;
 		vfe0-vdd-supply = <&gdsc_vfe>;
@@ -234,7 +234,7 @@
 		reg = <0x1b10000 0x1000>,
 			<0x1b40000 0x200>;
 		reg-names = "vfe", "vfe_vbif";
-		interrupts = <0 57 0>;
+		interrupts = <0 57 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "vfe";
 		vdd-supply = <&gdsc_vfe>;
 		clocks = <&clock_gcc clk_gcc_camss_top_ahb_clk>,
@@ -284,7 +284,7 @@
 		reg = <0x1b14000 0x1000>,
 			<0x1ba0000 0x200>;
 		reg-names = "vfe", "vfe_vbif";
-		interrupts = <0 29 0>;
+		interrupts = <0 29 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "vfe";
 		vdd-supply = <&gdsc_vfe1>;
 		clocks = <&clock_gcc clk_gcc_camss_top_ahb_clk>,
@@ -376,7 +376,7 @@
 		reg = <0x1b1c000 0x400>,
 			<0x1b60000 0xc30>;
 		reg-names = "jpeg_hw", "jpeg_vbif";
-		interrupts = <0 59 0>;
+		interrupts = <0 59 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "jpeg";
 		vdd-supply = <&gdsc_jpeg>;
 		qcom,vdd-names = "vdd";
@@ -416,7 +416,7 @@
 			<0x1b18000 0x018>,
 			<0x1858078 0x4>;
 		reg-names = "cpp", "cpp_vbif", "cpp_hw", "camss_cpp";
-		interrupts = <0 49 0>;
+		interrupts = <0 49 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "cpp";
 		vdd-supply = <&gdsc_cpp>;
 		qcom,vdd-names = "vdd";
@@ -465,7 +465,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg-names = "cci";
-		interrupts = <0 50 0>;
+		interrupts = <0 50 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "cci";
 		clocks = <&clock_gcc clk_gcc_camss_ispif_ahb_clk>,
 			<&clock_gcc clk_cci_clk_src>,
