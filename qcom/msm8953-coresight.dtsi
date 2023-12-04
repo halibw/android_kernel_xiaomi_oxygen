@@ -20,7 +20,7 @@
 				<0x6044000 0x15000>;
 		reg-names = "tmc-base", "bam-base";
 
-		interrupts = <0 166 0>;
+		interrupts = <0 166 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "byte-cntr-irq";
 
 		arm,buffer-size = <0x400000>;
