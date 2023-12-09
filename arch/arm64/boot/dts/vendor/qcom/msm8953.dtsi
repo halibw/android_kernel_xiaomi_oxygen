@@ -269,7 +269,7 @@
 		compatible = "qcom,msm-gladiator";
 		reg = <0x0b1c0000 0x4000>;
 		reg-names = "gladiator_base";
-		interrupts = <0 22 0>;
+		interrupts = <0 22 IRQ_TYPE_LEVEL_HIGH>;
 	};
 
 	timer {
@@ -537,7 +537,7 @@
 	blsp1_uart0: serial@78af000 {
 		compatible = "qcom,msm-uartdm-v1.4", "qcom,msm-uartdm";
 		reg = <0x78af000 0x200>;
-		interrupts = <0 107 0>;
+		interrupts = <0 107 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&clock_gcc clk_gcc_blsp1_uart1_apps_clk>,
 			<&clock_gcc clk_gcc_blsp1_ahb_clk>;
 		clock-names = "core", "iface";
@@ -655,7 +655,7 @@
 	blsp1_serial1: serial@78b0000 {
 		compatible = "qcom,msm-uartdm-v1.4", "qcom,msm-uartdm";
 		reg = <0x78b0000 0x200>;
-		interrupts = <0 108 0>;
+		interrupts = <0 108 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&clock_gcc clk_gcc_blsp1_uart2_apps_clk>,
 			<&clock_gcc clk_gcc_blsp1_ahb_clk>;
 		clock-names = "core", "iface";
@@ -1802,8 +1802,8 @@
 		compatible = "qcom,ipa";
 		reg = <0x07900000 0x4effc>, <0x07904000 0x26934>;
 		reg-names = "ipa-base", "bam-base";
-		interrupts = <0 228 0>,
-				<0 230 0>;
+		interrupts = <0 228 IRQ_TYPE_LEVEL_HIGH>,
+				<0 230 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "ipa-irq", "bam-irq";
 		qcom,ipa-hw-ver = <6>; /* IPA core version = IPAv2.6L */
 		qcom,ipa-hw-mode = <0>; /* IPA hw type = Normal */
@@ -1860,7 +1860,7 @@
 		#size-cells = <1>;
 		ranges;
 
-		interrupts = <0 136 0>, <0 220 0>, <0 134 0>;
+		interrupts = <0 136 IRQ_TYPE_LEVEL_HIGH>, <0 220 IRQ_TYPE_LEVEL_HIGH>, <0 134 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "hs_phy_irq", "ss_phy_irq", "pwr_event_irq";
 
 		USB3_GDSC-supply = <&gdsc_usb30>;
