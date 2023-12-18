@@ -7043,16 +7043,19 @@ static void esr_adjust_work(struct work_struct *work)
 	if (cfg[lvl].empty_irq_enable) {
 		settings[FG_MEM_IRQ_VOLT_EMPTY].value = cfg[lvl].v_empty;
 		update_irq_volt_empty(chip);
-		if (!chip->empty_irq_enabled) {
+		if (!chip->empty_irq_enabled && chip->soc_irq[EMPTY_SOC].disabled) {
 			enable_irq(chip->soc_irq[EMPTY_SOC].irq);
 			enable_irq_wake(chip->soc_irq[EMPTY_SOC].irq);
 			chip->empty_irq_enabled = true;
 		}
 	} else {
 		disable_irq_wake(chip->soc_irq[EMPTY_SOC].irq);
-		disable_irq_nosync(chip->soc_irq[EMPTY_SOC].irq);
 		chip->empty_irq_enabled = false;
 	}
+
+	if (!chip->empty_irq_enabled && chip->soc_irq[EMPTY_SOC].disabled)
+		disable_irq_nosync(chip->soc_irq[EMPTY_SOC].irq);
+
 }
 
 
